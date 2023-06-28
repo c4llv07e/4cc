@@ -9,7 +9,7 @@
 
 // TOP
 
-//#define FM_PRINT_COMMANDS
+#define FM_PRINT_COMMANDS
 
 #include "4coder_base_types.h"
 #include "4coder_version.h"
@@ -26,15 +26,19 @@
 //
 
 typedef u32 Tier_Code;
-enum{
-    Tier_Demo,
-    Tier_Super,
-    Tier_COUNT,
+enum
+{
+	Tier_Demo,
+	Tier_Super,
+
+	Tier_Count,
+	Tier_None = Tier_Count
 };
 
-char *tier_names[] = {
-    "demo",
-    "super",
+char* tier_names[]=
+{
+	"demo",
+	"super"
 };
 
 typedef u32 Platform_Code;
@@ -104,13 +108,48 @@ char *arch_names[] = {
 # error This compilers is not enumerated.
 #endif
 
+
+struct Project_Layout
+{
+	// folders
+	char* project_root_path;
+	char* core_layer_path;
+	char* custom_layer_path;
+	char* build_path;
+	char* ship_files_path;
+	char* ship_themes_path;
+	char* build_themes_path;
+	char* site_path;
+	char* distributions_path;
+	char* non_source_path;
+	char* dist_files_path;
+	char* foreign_path;
+
+	// files
+	char* app_target;
+	char* app_target_out;
+	char* platform_layer;
+	char* platform_layer_out;
+	char* custom_layer;
+	char* custom_layer_out;
+
+	// flags
+	u32 flags;
+	u32 arch;
+	i32 os_id;
+	char* os;
+	i32 compiler_id;
+	char* compiler;
+};
+
+
 //
 // Universal directories
 //
 
-#define BUILD_DIR "../build"
-#define PACK_DIR "../distributions"
-#define SITE_DIR "../site"
+#define BUILD_DIR "build"
+#define PACK_DIR "distributions"
+#define SITE_DIR "code/site"
 
 #define FOREIGN "../non-source/foreign"
 #define FOREIGN_WIN "..\\non-source\\foreign"
@@ -121,14 +160,14 @@ char *includes[] = { "custom", FOREIGN "/freetype2", 0, };
 // Platform layer file tables
 //
 
-char *windows_platform_layer[] = { "platform_win32/win32_4ed.cpp", 0 };
-char *linux_platform_layer[] = { "platform_linux/linux_4ed.cpp", 0 };
-char *mac_platform_layer[] = { "platform_mac/mac_4ed.mm", 0 };
+char* win_layer[] = {"platform_win32/win32_4ed.cpp", 0};
+char* lin_layer[] = {"platform_linux/linux_4ed.cpp", 0};
+char* mac_layer[] = {"platform_mac/mac_4ed.mm", 0};
 
-char **platform_layers[Platform_COUNT] = {
-    windows_platform_layer,
-    linux_platform_layer  ,
-    mac_platform_layer    ,
+char** platform_layers[Platform_COUNT] = {
+	/*win*/win_layer,
+	/*lin*/lin_layer,
+	/*mac*/mac_layer,
 };
 
 char *windows_cl_platform_inc[] = { "platform_all", 0 };
@@ -142,7 +181,7 @@ char **platform_includes[Platform_COUNT][Compiler_COUNT] = {
     {0                      , 0                     , mac_clang_platform_inc},
 };
 
-char *default_custom_target = "../code/custom/4coder_default_bindings.cpp";
+char *default_custom_target = "4coder_default_bindings.cpp";
 
 // NOTE(allen): Build flags
 
@@ -255,7 +294,7 @@ build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, cha
     }
 
     for (u32 i = 0; code_files[i]; ++i){
-        fm_add_to_line(line, "\"%s\\%s\"", code_path, code_files[i]);
+        fm_add_to_line(line, "\"%s\"", code_files[i]);
     }
 
     fm_add_to_line(line, "-Fe%s", out_file);
@@ -292,6 +331,40 @@ build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, cha
     fflush(stdout);
 }
 
+internal void
+buildsuper(Arena *arena, char *cdir, char *file, u32 arch){
+	printf("BUILDSUPER:\n cdir = %s;\n file = %s;\n arch = %s;\n", cdir, file, arch_names[arch]);
+	fflush(stdout);
+
+	Temp_Dir temp = fm_pushdir(fm_str(arena, BUILD_DIR));
+
+	char *build_script_postfix = "";
+	switch (This_OS){
+		case Platform_Windows:
+		{
+			build_script_postfix = "-win";
+		}break;
+		case Platform_Linux:
+		{
+			build_script_postfix = "-linux";
+		}break;
+		case Platform_Mac:
+		{
+			build_script_postfix = "-mac";
+		}break;
+	}
+	char *build_script = fm_str(arena, "custom/bin/buildsuper_", arch_names[arch], build_script_postfix, BAT);
+
+	char *build_command = fm_str(arena, "\"", cdir, "/", build_script, "\" \"", file, "\"");
+	if (This_OS == Platform_Windows){
+		build_command = fm_str(arena, "call ", build_command);
+	}
+	systemf("%s", build_command);
+
+	fm_popdir(temp);
+	fflush(stdout);
+}
+
 //
 // build implementation: gcc
 //
@@ -319,7 +392,9 @@ build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, cha
 #endif
 
 internal void
-build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, char *out_path, char *out_file, char **defines, char **exports, char **inc_folders){
+build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files,
+	  char *out_path, char *out_file, char **defines,
+	  char **exports, char **inc_folders){
     Build_Line line;
     fm_init_build_line(&line);
 
@@ -348,7 +423,7 @@ build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, cha
     }
 
     if (flags & DEBUG_INFO){
-        fm_add_to_line(line, "-g -O0");
+		fm_add_to_line(line, "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols");
     }
 
     if (flags & OPTIMIZATION){
@@ -368,7 +443,7 @@ build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, cha
 
     fm_add_to_line(line, "-I\"%s\"", code_path);
     for (u32 i = 0; code_files[i] != 0; ++i){
-        fm_add_to_line(line, "\"%s/%s\"", code_path, code_files[i]);
+        fm_add_to_line(line, "\"%s\"", code_files[i]);
     }
 
     if (flags & LIBS){
@@ -386,6 +461,45 @@ build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, cha
     Temp_Dir temp = fm_pushdir(out_path);
     systemf("g++ %s -o %s", line.build_options, out_file);
     fm_popdir(temp);
+}
+
+internal void
+buildsuper(Arena *arena, const Project_Layout* project_layout){
+    printf("BUILDSUPER:\n cdir = %s;\n file = %s;\n arch = %s;\n", project_layout->custom_layer_path, project_layout->custom_layer, arch_names[project_layout->arch]);
+	// GENERATE THE PREPROC FILE FOR THE METADATA GENERATOR
+	//       g++ -I"$CODE_HOME" $meta_macros $arch $opts $debug -std=c++11 "$SOURCE" -E -o $preproc_file
+	const char* source = project_layout->custom_layer;
+	char* home_folder = project_layout->custom_layer_path;
+	char* meta_macros = "-DMETA_PASS";
+	char* arch_flag = "-m64";
+	char* opts = "-Wno-write-strings -Wno-null-dereference -Wno-comment -Wno-switch -Wno-missing-declarations -Wno-logical-op-parentheses -g -DOS_LINUX=1 -DOS_WINDOWS=0 -DOS_MAC=0";
+	char* debug = "-g3 -ggdb3";
+	char* preproc_file = fm_str(arena, project_layout->custom_layer_path, SLASH, "4coder_command_metadata.i ");
+	systemf("g++ -I%s %s %s %s %s -std=c++11 %s -E -o %s", home_folder, meta_macros, arch_flag, opts, debug, source, preproc_file);
+
+	// BUILD THE METADATA GENERATOR
+	//      g++ -I"$CODE_HOME" $opts $debug -std=c++11 "$CODE_HOME/4coder_metadata_generator.cpp" -o "$CODE_HOME/metadata_generator"
+	char* metadata_generator_cpp = fm_str(arena, project_layout->custom_layer_path, SLASH, "4coder_metadata_generator.cpp");
+	char* metadata_generator     = fm_str(arena, project_layout->custom_layer_path, SLASH, "metadata_generator");
+	systemf("g++ -I%s %s %s -std=c++11 %s -o %s", home_folder, opts, debug, metadata_generator_cpp, metadata_generator);
+
+	// GENERATE THE METADATA
+	//       "$CODE_HOME/metadata_generator" -R "$CODE_HOME" "$PWD/$preproc_file"
+	systemf("%s -R %s %s", metadata_generator, home_folder, preproc_file);
+
+	// BUDILD THE CUSTOM LAYER
+	//      g++ -I"$CODE_HOME" $arch $opts $debug -std=gnu++0x "$SOURCE" -shared -o custom_4coder.so -fPIC
+	char* shared_library = project_layout->custom_layer_out;
+	systemf("g++ -I%s %s %s %s -std=gnu++0x %s  -shared -o %s -fPIC", home_folder, arch_flag, opts, debug, source, shared_library);
+
+	// REMOVE THE METADATA GENERATOR
+	//rm "$CODE_HOME/metadata_generator"
+	systemf("rm %s", metadata_generator);
+
+	// REMOVE THE PREPROC FILE
+	//rm $preproc_file
+	systemf("rm %s", preproc_file);
+	fflush(stdout);
 }
 
 #elif COMPILER_CLANG
@@ -486,6 +600,40 @@ build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, cha
     fm_popdir(temp);
 }
 
+internal void
+buildsuper(Arena *arena, char *cdir, char *file, u32 arch){
+	printf("BUILDSUPER:\n cdir = %s;\n file = %s;\n arch = %s;\n", cdir, file, arch_names[arch]);
+	fflush(stdout);
+
+	Temp_Dir temp = fm_pushdir(fm_str(arena, BUILD_DIR));
+
+	char *build_script_postfix = "";
+	switch (This_OS){
+		case Platform_Windows:
+		{
+			build_script_postfix = "-win";
+		}break;
+		case Platform_Linux:
+		{
+			build_script_postfix = "-linux";
+		}break;
+		case Platform_Mac:
+		{
+			build_script_postfix = "-mac";
+		}break;
+	}
+	char *build_script = fm_str(arena, "custom/bin/buildsuper_", arch_names[arch], build_script_postfix, BAT);
+
+	char *build_command = fm_str(arena, "\"", cdir, "/", build_script, "\" \"", file, "\"");
+	if (This_OS == Platform_Windows){
+		build_command = fm_str(arena, "call ", build_command);
+	}
+	systemf("%s", build_command);
+
+	fm_popdir(temp);
+	fflush(stdout);
+}
+
 #else
 # error build function not defined for this compiler
 #endif
@@ -497,87 +645,54 @@ build(Arena *arena, u32 flags, u32 arch, char *code_path, char *code_file, char 
 }
 
 internal void
-build_and_run(Arena *arena, char *cdir, char *filename, char *name, u32 flags){
-    char *dir = fm_str(arena, BUILD_DIR);
+build_main(Arena *arena, const Project_Layout* project_layout, b32 update_local_theme){
+    char* build_dir = project_layout->build_path;//fm_str(arena, project_root, SLASH, BUILD_DIR);
 
     {
-        char *file = fm_str(arena, filename);
-        build(arena, flags, Arch_X64, cdir, file, dir, name, get_defines_from_flags(arena, flags), 0, includes);
-    }
-
-    if (prev_error == 0){
-        char *cmd = fm_str(arena, dir, "/", name);
-        fm_execute_in_dir(cdir, cmd, 0);
-    }
-}
-
-internal void
-buildsuper(Arena *arena, char *cdir, char *file, u32 arch){
-    printf("BUILDSUPER:\n cdir = %s;\n file = %s;\n arch = %s;\n", cdir, file, arch_names[arch]);
-    fflush(stdout);
-
-    Temp_Dir temp = fm_pushdir(fm_str(arena, BUILD_DIR));
-
-    char *build_script_postfix = "";
-    switch (This_OS){
-        case Platform_Windows:
-        {
-            build_script_postfix = "-win";
-        }break;
-        case Platform_Linux:
-        {
-            build_script_postfix = "-linux";
-        }break;
-        case Platform_Mac:
-        {
-            build_script_postfix = "-mac";
-        }break;
-    }
-    char *build_script = fm_str(arena, "custom/bin/buildsuper_", arch_names[arch], build_script_postfix, BAT);
-
-    char *build_command = fm_str(arena, "\"", cdir, "/", build_script, "\" \"", file, "\"");
-    if (This_OS == Platform_Windows){
-        build_command = fm_str(arena, "call ", build_command);
-    }
-    systemf("%s", build_command);
-
-    fm_popdir(temp);
-    fflush(stdout);
-}
-
-internal void
-build_main(Arena *arena, char *cdir, b32 update_local_theme, u32 flags, u32 arch){
-    char *dir = fm_str(arena, BUILD_DIR);
-
-    {
-        char *file = fm_str(arena, "4ed_app_target.cpp");
         char **exports = fm_list_one_item(arena, "app_get_functions");
-
+        char *app_target_file = project_layout->app_target;//fm_str(arena, core_layer_path, SLASH "4ed_app_target.cpp");
+		char* out_shared_file = project_layout->app_target_out;//fm_str(arena, build_dir, SLASH, "4ed_app" DLL);
         char **build_includes = includes;
+		u32 flags = project_layout->flags;
 
-        build(arena, OPTS | SHARED_CODE | flags, arch, cdir, file, dir, "4ed_app" DLL, get_defines_from_flags(arena, flags), exports, build_includes);
+        build(arena,
+			  OPTS | SHARED_CODE | flags,
+			  project_layout->arch,
+			  project_layout->core_layer_path,
+			  app_target_file,
+			  project_layout->build_path,
+			  out_shared_file,
+			  get_defines_from_flags(arena, flags),
+			  exports,
+			  build_includes);
     }
 
     {
         char **inc = (char**)fm_list(arena, includes, platform_includes[This_OS][This_Compiler]);
-        build(arena, OPTS | LIBS | ICON | flags, arch, cdir, platform_layers[This_OS], dir, "4ed", get_defines_from_flags(arena, flags), 0, inc);
+		//char* out_bin_file = fm_str(arena, build_dir, SLASH, "4ed" EXE);
+		//char* platform_file = fm_str(arena, core_layer_path, SLASH, platform_layers[This_OS][0]);
+		u32 flags = project_layout->flags;
+		build(arena,
+			  OPTS | LIBS | ICON | flags,
+			  project_layout->arch,
+			  project_layout->core_layer_path,
+			  project_layout->platform_layer,
+			  project_layout->build_path,
+			  project_layout->platform_layer_out,
+			  get_defines_from_flags(arena, flags),
+			  0,
+			  inc);
     }
 
     if (update_local_theme){
-        char *themes_folder = fm_str(arena, "../build/themes");
-        char *source_themes_folder = fm_str(arena, "ship_files/themes");
+        char *themes_folder = project_layout->build_themes_path;//fm_str(arena, project_root, SLASH, BUILD_DIR, SLASH, "themes");
+        char *source_themes_folder = project_layout->ship_themes_path;//fm_str(arena, core_layer_path, SLASH, "ship_files/themes");
         fm_clear_folder(themes_folder);
         fm_make_folder_if_missing(arena, themes_folder);
         fm_copy_all(source_themes_folder, themes_folder);
     }
 
     fflush(stdout);
-}
-
-internal void
-standard_build(Arena *arena, char *cdir, u32 flags, u32 arch){
-    buildsuper(arena, cdir, fm_str(arena, default_custom_target), arch);
-    build_main(arena, cdir, true, flags, arch);
 }
 
 internal char*
@@ -605,8 +720,9 @@ package_for_arch(Arena *arena, u32 arch, char *cdir, char *build_dir, char *pack
     printf(" zip_dir = %s;\n", zip_dir);
     fflush(stdout);
 
-    buildsuper(arena, cdir, fm_str(arena, default_custom_target), arch);
-    build_main(arena, cdir, false, flags, arch);
+	// UPDATE THIS CALL TO USE THE NEW PROJECT_LAYOUT STRUCT
+    //buildsuper(arena, cdir /*this should be project root*/, cdir /*this should be custom layer path*/, fm_str(arena, default_custom_target), arch);
+    //build_main(arena, cdir /*this should be project root*/, cdir /*this should be custom layer path*/, false, flags, arch);
 
     fm_clear_folder(parent_dir);
     fm_make_folder_if_missing(arena, parent_dir);
@@ -655,7 +771,7 @@ package(Arena *arena, char *cdir, Tier_Code tier, Arch_Code arch){
     char *build_dir = fm_str(arena, BUILD_DIR);
     char *pack_dir = fm_str(arena, PACK_DIR);
     char *dist_files[2];
-    dist_files[0] = fm_str(arena, "../non-source/dist_files");
+    dist_files[0] = fm_str(arena, "non-source/dist_files");
     dist_files[1] = fm_str(arena, "ship_files");
 
     printf("build dir: %s\n", build_dir);
@@ -670,73 +786,135 @@ package(Arena *arena, char *cdir, Tier_Code tier, Arch_Code arch){
     char *tier_name = tier_names[tier];
     u32 flags = base_flags | tier_flags(tier);
     Temp_Memory temp = begin_temp(arena);
-    char *current_dist_tier = fm_str(arena, ".." SLASH "current_dist_", tier_name);
+    char *current_dist_tier = fm_str(arena, ".." SLASH "current_dist_super");//, tier_name);
     package_for_arch(arena, arch, cdir, build_dir, pack_dir, tier, tier_name, current_dist_tier, flags, dist_files, ArrayCount(dist_files));
     end_temp(temp);
 }
-
-#include <string>
 
 bool is_in_argv(char* argument, int argc, char** argv)
 {
 	bool is_in = false;
 
-	std::string arg_str(argument);
+	String_Const_char arg_str = {argument, cstring_length(argument)};
 	for(int idx = 0; idx < argc; ++idx)
 	{
-		is_in = arg_str == std::string(argv[idx]);
+		String_Const_char current_arg = {argv[idx], cstring_length(argv[idx])};
+		is_in = string_match(arg_str, current_arg);
 	}
 
 	return is_in;
 }
 
+char* get_custom_target(int argc, char** argv)
+{
+	char* custom_target = nullptr;
+
+	char* custom_equal_str = "custom=";
+	u64 custom_equal_length = cstring_length(const_cast<char*>(custom_equal_str));
+	String_Const_char custom_equal = {custom_equal_str, custom_equal_length};
+
+	for(int i = 0; i < argc; ++i)
+	{
+		u64 argument_length = cstring_length(const_cast<char*>(argv[i]));
+		if (argument_length > custom_equal_length)
+		{
+			String_Const_char current_argument = {const_cast<char*>(argv[i]), custom_equal_length};
+			bool is_custom_target_argument = string_match(current_argument, custom_equal);
+			if (is_custom_target_argument)
+			{
+				custom_target = &argv[i][7];
+			}
+		}
+	}
+
+	return custom_target;
+}
+
+
 int main(int argc, char **argv){
     Arena arena = fm_init_system(DetailLevel_FileOperations);
 
-    char cdir[256];
-    i32 n = fm_get_current_directory(cdir, sizeof(cdir));
-    Assert(n < sizeof(cdir));
+	// INITIALIZE project
+	char project_root[512];
+	i32 n = fm_get_current_directory(project_root, sizeof(project_root));
+    Assert(n < sizeof(project_root));
+
+	char* core_layer_path = fm_str(&arena, project_root, SLASH, "code");
+	char* custom_layer_path = fm_str(&arena, core_layer_path, SLASH, "custom");
+	char* build_path = fm_str(&arena, project_root, SLASH, "build");
+	char* ship_files_path = fm_str(&arena, core_layer_path, SLASH, "ship_files");
+	char* ship_themes_path = fm_str(&arena, ship_files_path, SLASH, "themes");
+	char* build_themes_path = fm_str(&arena, build_path, SLASH, "themes");
+	char* site_path = fm_str(&arena, core_layer_path, SLASH, "site");
+	char* distributions_path = fm_str(&arena, project_root, SLASH, "distributions");
+	char* non_source_path = fm_str(&arena, project_root, SLASH, "non-source");
+	char* dist_files_path =  fm_str(&arena, non_source_path, SLASH, "dist_files");
+	char* foreign_path =  fm_str(&arena, non_source_path, SLASH, "foreign");
+
+	char* app_target = fm_str(&arena, core_layer_path, SLASH "4ed_app_target.cpp");
+	char* app_target_out = fm_str(&arena, build_path, SLASH, "4ed_app" DLL);
+	char* platform_layer = fm_str(&arena, core_layer_path, SLASH, platform_layers[This_OS][0]);
+	char* platform_layer_out = fm_str(&arena, build_path, SLASH, "4ed" EXE);
+	char* custom_layer = fm_str(&arena, custom_layer_path, SLASH, "4coder_default_bindings.cpp");
+	char* custom_layer_out = fm_str(&arena, build_path, SLASH, "custom_4coder" DLL);
+
+
+	char* custom_target = get_custom_target(argc, argv);
+	if (custom_target) { custom_layer = custom_target; }
 
     u32 flags = SUPER;
     u32 arch = Arch_X64;
-	if (is_in_argv("DEV_BUILD", argc, argv) || is_in_argv("DEV_BUILD_X86", argc, argv))
-	{
-		flags |= DEBUG_INFO | INTERNAL;
-	}
+	Tier_Code tier = Tier_Super;
 
+	bool isDevelopmentBuild = is_in_argv("dev", argc, argv);
+	bool isOptimizedBuild   = is_in_argv("opt", argc, argv);
+	bool isX86Arch          = is_in_argv("x86", argc, argv) ;
+	bool shouldPackage      = is_in_argv("package", argc, argv);
 
-	if (is_in_argv("OPT_BUILD", argc, argv) || is_in_argv("OPT_BUILD_X86", argc, argv))
-	{
-        flags |= OPTIMIZATION;
-	}
+	if (isDevelopmentBuild) { flags |= DEBUG_INFO | INTERNAL; }
+	if (isOptimizedBuild) { flags |= OPTIMIZATION; }
+	if (isX86Arch) { arch = Arch_X86; }
 
-	if (is_in_argv("DEV_BUILD_X86", argc, argv) || is_in_argv("OPT_BUILD_X86", argc, argv))
+	const Project_Layout project_layout =
 	{
-		arch = Arch_X86;
-	}
+		//FOLDERS
+		.project_root_path = project_root,
+		.core_layer_path = core_layer_path,
+		.custom_layer_path = custom_layer_path,
+		.build_path = build_path,
+		.ship_files_path = ship_files_path,
+		.ship_themes_path = ship_themes_path,
+		.build_themes_path = build_themes_path,
+		.site_path = site_path,
+		.distributions_path = distributions_path,
+		.non_source_path = non_source_path,
+		.dist_files_path = dist_files_path,
+		.foreign_path = foreign_path,
+		// FILES
+		.app_target = app_target,
+		.app_target_out = app_target_out,
+		.platform_layer = platform_layer,
+		.platform_layer_out = platform_layer_out,
+		.custom_layer = custom_layer,
+		.custom_layer_out = custom_layer_out,
+		//FLAGS
+		.flags = flags,
+		.arch = arch,
+		.os_id = This_OS,
+		.os = platform_names[This_OS],
+		.compiler_id = This_Compiler,
+		.compiler = compiler_names[This_Compiler],
+	};
 
-	if (is_in_argv("DEV_BUILD", argc, argv) ||
-		is_in_argv("OPT_BUILD", argc, argv) ||
-		is_in_argv("DEV_BUILD_X86", argc, argv) ||
-		is_in_argv("OPT_BUILD_X86", argc, argv))
+	if (!shouldPackage)
 	{
-	    standard_build(&arena, cdir, flags, arch);
+		const bool shouldUpdateThemes = true;
+		buildsuper(&arena, &project_layout);
+		build_main(&arena, &project_layout, shouldUpdateThemes);
 	}
-	else if (is_in_argv("PACKAGE_DEMO_X64", argc, argv))
-    {
-		package(&arena, cdir, Tier_Demo, Arch_X64);
-	}
-	else if (is_in_argv("PACKAGE_DEMO_X86", argc, argv))
-    {
-		package(&arena, cdir, Tier_Demo, Arch_X86);
-	}
-	else if (is_in_argv("PACKAGE_SUPER_X64", argc, argv))
+	else
 	{
-		package(&arena, cdir, Tier_Super, Arch_X64);
-	}
-	else if (is_in_argv("PACKAGE_SUPER_X86", argc, argv))
-	{
-		package(&arena, cdir, Tier_Super, Arch_X86);
+		package(&arena, custom_layer_path, tier, arch);
 	}
 
     return(error_state);
