@@ -13,17 +13,10 @@
 
 #include "4coder_base_types.h"
 #include "4coder_version.h"
-
 #include "4coder_base_types.cpp"
 #include "4coder_malloc_allocator.cpp"
-
 #define FTECH_FILE_MOVING_IMPLEMENTATION
 #include "4coder_file_moving.h"
-
-
-//
-// OS and compiler index
-//
 
 typedef u32 Tier_Code;
 enum
@@ -69,23 +62,8 @@ enum{
 
 char *compiler_names[] = {
     "cl",
-    "gcc",
+    "g++",
     "clang",
-};
-
-typedef u32 Arch_Code;
-enum{
-    Arch_X64,
-    Arch_X86,
-
-    //
-    Arch_COUNT,
-    Arch_None = Arch_COUNT,
-};
-
-char *arch_names[] = {
-    "x64",
-    "x86",
 };
 
 #if OS_WINDOWS
@@ -109,56 +87,59 @@ char *arch_names[] = {
 #endif
 
 
-struct Project_Layout
+struct Project
 {
 	// folders
-	char* project_root_path;
-	char* core_layer_path;
-	char* custom_layer_path;
-	char* build_path;
-	char* ship_files_path;
-	char* ship_themes_path;
-	char* build_themes_path;
-	char* site_path;
-	char* distributions_path;
-	char* non_source_path;
-	char* dist_files_path;
-	char* foreign_path;
+	struct Layout
+	{
+		char* project_root_path;
+		char* core_layer_path;
+		char* custom_layer_path;
+		char* build_path;
+		char* ship_files_path;
+		char* ship_themes_path;
+		char* build_themes_path;
+		char* site_path;
+		char* distributions_path;
+		char* non_source_path;
+		char* dist_files_path;
+		char* foreign_path;
+	} layout;
 
-	// files
-	char* app_target;
-	char* app_target_out;
-	char* platform_layer;
-	char* platform_layer_out;
-	char* custom_layer;
-	char* custom_layer_out;
+	struct Compilation
+	{
+		// files
+		char* app_target;
+		char* app_target_out;
+		char* platform_layer;
+		char* platform_layer_out;
+		char* custom_layer;
+		char* custom_layer_out;
 
-	// flags
-	u32 flags;
-	u32 arch;
-	i32 os_id;
-	char* os;
-	i32 compiler_id;
-	char* compiler;
+		// compiler options
+		char* compiler_options;
+		char* debug_options;
+		char* optimization_options;
+		char* arch_options;
+
+		char* defines;
+		char* exports;
+		char* library;
+		char* icon;
+
+		char* so_includes;
+		char* bin_includes;
+
+		// flags
+		u32 flags;
+		//u32 arch;
+		u32 os_id;
+		char* os;
+		u32 compiler_id;
+		char* compiler;
+	}compilation;
 };
 
-
-//
-// Universal directories
-//
-
-#define BUILD_DIR "build"
-#define PACK_DIR "distributions"
-#define SITE_DIR "code/site"
-
-#define FOREIGN "../non-source/foreign"
-#define FOREIGN_WIN "..\\non-source\\foreign"
-
-char *includes[] = { "custom", FOREIGN "/freetype2", 0, };
-
-//
-// Platform layer file tables
-//
 
 char* win_layer[] = {"platform_win32/win32_4ed.cpp", 0};
 char* lin_layer[] = {"platform_linux/linux_4ed.cpp", 0};
@@ -197,31 +178,14 @@ enum{
     SHIP = 0x100,
 };
 
-internal char**
-get_defines_from_flags(Arena *arena, u32 flags){
-    char **result = 0;
-    if (HasFlag(flags, SHIP)){
-        result = fm_list(arena, fm_list_one_item(arena, "SHIP_MODE"), result);
-    }
-    if (HasFlag(flags, INTERNAL)){
-        result = fm_list(arena, fm_list_one_item(arena, "FRED_INTERNAL"), result);
-    }
-    if (HasFlag(flags, SUPER)){
-        result = fm_list(arena, fm_list_one_item(arena, "FRED_SUPER"), result);
-    }
-    return(result);
-}
-
-//
-// build implementation: cl
-//
-
 #if COMPILER_CL
 
 #define CL_OPTS                                  \
 "-W4 -wd4310 -wd4100 -wd4201 -wd4505 -wd4996 "  \
 "-wd4127 -wd4510 -wd4512 -wd4610 -wd4390 "      \
-"-wd4611 -wd4189 -WX -GR- -EHa- -nologo -FC"
+"-wd4611 -wd4189 -WX -GR- -EHa- -nologo -FC -link -INCREMENTAL:NO -RELEASE -PDBALTPATH:%%_PDB%%"
+
+#define FOREIGN_WIN "..\\non-source\\foreign"
 
 #define CL_LIBS_COMMON \
 "user32.lib winmm.lib gdi32.lib opengl32.lib comdlg32.lib userenv.lib "
@@ -230,144 +194,120 @@ get_defines_from_flags(Arena *arena, u32 flags){
 
 #define CL_ICON "..\\non-source\\res\\icon.res"
 
-internal void
-build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, char *out_path, char *out_file, char **defines, char **exports, char **inc_folders){
-    Temp_Dir temp = fm_pushdir(out_path);
+#define compiler_flags CL_OPTS
+#define debug_flags " -Zi -DDO_CRAZY_EXPENSIVE_ASSERTS"
+#define optimization_flags " -O2"
+#define arch_flags " -MACHINE:X64 -DFTECH_64_BIT"
+#define libraries CL_LIBS_COMMON FOREIGN_WIN "\\x64\\freetype.lib " " -NODEFAULTLIB:library"
+#define exports " -OPT:REF -EXPORT:"
+#define icon_flags " "
+#define SHARED_FLAG " -LD"
+#define REMOVE_PROGRAM "del "
+#define PREPROCESS_FLAG " -E"
+#define OUT_FLAG " -o "
+#define INCLUDE_FLAG " -I"
+#define DEFINE_FLAG " -D"
 
-    Build_Line line;
-    fm_init_build_line(&line);
+//internal void
+//build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, char *out_path, char *out_file, char **defines, char **exports, char **inc_folders){
+//    Temp_Dir temp = fm_pushdir(out_path);
 
-    if (arch == Arch_X86){
-        fm_add_to_line(line, "%s\\custom\\bin\\setup_cl_x86.bat &", code_path);
-    }
+//    Build_Line line;
+//    fm_init_build_line(&line);
 
-    fm_add_to_line(line, "cl");
+//    if (arch == Arch_X86){
+//        fm_add_to_line(line, "%s\\custom\\bin\\setup_cl_x86.bat &", code_path);
+//    }
 
-    if (flags & OPTS){
-        fm_add_to_line(line, CL_OPTS);
-    }
+//    fm_add_to_line(line, "cl");
 
-    switch (arch){
-        case Arch_X64: fm_add_to_line(line, "-DFTECH_64_BIT"); break;
-        case Arch_X86: fm_add_to_line(line, "-DFTECH_32_BIT"); break;
-        default: InvalidPath;
-    }
+//    if (flags & OPTS){
+//        fm_add_to_line(line, CL_OPTS);
+//    }
 
-    fm_add_to_line(line, "-I%s", code_path);
-    if (inc_folders != 0){
-        for (u32 i = 0; inc_folders[i] != 0; ++i){
-            char *str = fm_str(arena, code_path, "/", inc_folders[i]);
-            fm_add_to_line(line, "-I%s", str);
-        }
-    }
+//    switch (arch){
+//        case Arch_X64: fm_add_to_line(line, "-DFTECH_64_BIT"); break;
+//        case Arch_X86: fm_add_to_line(line, "-DFTECH_32_BIT"); break;
+//        default: InvalidPath;
+//    }
 
-    if (flags & LIBS){
-        switch (arch){
-            case Arch_X64: fm_add_to_line(line, CL_LIBS_X64); break;
-            case Arch_X86: fm_add_to_line(line, CL_LIBS_X86); break;
-            default: InvalidPath;
-        }
-    }
+//    fm_add_to_line(line, "-I%s", code_path);
+//    if (inc_folders != 0){
+//        for (u32 i = 0; inc_folders[i] != 0; ++i){
+//            char *str = fm_str(arena, code_path, "/", inc_folders[i]);
+//            fm_add_to_line(line, "-I%s", str);
+//        }
+//    }
 
-    if (flags & ICON){
-        fm_add_to_line(line, CL_ICON);
-    }
+//    if (flags & LIBS){
+//        switch (arch){
+//            case Arch_X64: fm_add_to_line(line, CL_LIBS_X64); break;
+//            case Arch_X86: fm_add_to_line(line, CL_LIBS_X86); break;
+//            default: InvalidPath;
+//        }
+//    }
 
-    if (flags & DEBUG_INFO){
-        fm_add_to_line(line, "-Zi");
-        fm_add_to_line(line, "-DDO_CRAZY_EXPENSIVE_ASSERTS");
-    }
+//    if (flags & ICON){
+//        fm_add_to_line(line, CL_ICON);
+//    }
 
-    if (flags & OPTIMIZATION){
-        fm_add_to_line(line, "-O2");
-    }
+//    if (flags & DEBUG_INFO){
+//        fm_add_to_line(line, "-Zi");
+//        fm_add_to_line(line, "-DDO_CRAZY_EXPENSIVE_ASSERTS");
+//    }
 
-    if (flags & SHARED_CODE){
-        fm_add_to_line(line, "-LD");
-    }
+//    if (flags & OPTIMIZATION){
+//        fm_add_to_line(line, "-O2");
+//    }
 
-    if (defines != 0){
-        for (u32 i = 0; defines[i] != 0; ++i){
-            char *define_flag = fm_str(arena, "-D", defines[i]);
-            fm_add_to_line(line, "%s", define_flag);
-        }
-    }
+//    if (flags & SHARED_CODE){
+//        fm_add_to_line(line, "-LD");
+//    }
 
-    for (u32 i = 0; code_files[i]; ++i){
-        fm_add_to_line(line, "\"%s\"", code_files[i]);
-    }
+//    if (defines != 0){
+//        for (u32 i = 0; defines[i] != 0; ++i){
+//            char *define_flag = fm_str(arena, "-D", defines[i]);
+//            fm_add_to_line(line, "%s", define_flag);
+//        }
+//    }
 
-    fm_add_to_line(line, "-Fe%s", out_file);
+//    for (u32 i = 0; code_files[i]; ++i){
+//        fm_add_to_line(line, "\"%s\"", code_files[i]);
+//    }
 
-    fm_add_to_line(line, "-link -INCREMENTAL:NO -RELEASE -PDBALTPATH:%%_PDB%%");
-    switch (arch){
-        case Arch_X64: fm_add_to_line(line, "-MACHINE:X64"); break;
-        case Arch_X86: fm_add_to_line(line, "-MACHINE:X86"); break;
-        default: InvalidPath;
-    }
+//    fm_add_to_line(line, "-Fe%s", out_file);
 
-    if (flags & DEBUG_INFO){
-        fm_add_to_line(line, "-DEBUG");
-    }
+//    fm_add_to_line(line, "-link -INCREMENTAL:NO -RELEASE -PDBALTPATH:%%_PDB%%");
+//    switch (arch){
+//        case Arch_X64: fm_add_to_line(line, "-MACHINE:X64"); break;
+//        case Arch_X86: fm_add_to_line(line, "-MACHINE:X86"); break;
+//        default: InvalidPath;
+//    }
 
-    if (flags & SHARED_CODE){
-        Assert(exports != 0);
-        fm_add_to_line(line, "-OPT:REF");
-        for (u32 i = 0; exports[i] != 0; ++i){
-            char *str = fm_str(arena, "-EXPORT:", exports[i]);
-            fm_add_to_line(line, "%s", str);
-        }
-    }
-    else{
-        fm_add_to_line(line, "-NODEFAULTLIB:library");
-    }
+//    if (flags & DEBUG_INFO){
+//        fm_add_to_line(line, "-DEBUG");
+//    }
 
-    fm_finish_build_line(&line);
+//    if (flags & SHARED_CODE){
+//        Assert(exports != 0);
+//        fm_add_to_line(line, "-OPT:REF");
+//        for (u32 i = 0; exports[i] != 0; ++i){
+//            char *str = fm_str(arena, "-EXPORT:", exports[i]);
+//            fm_add_to_line(line, "%s", str);
+//        }
+//    }
+//    else{
+//        fm_add_to_line(line, "-NODEFAULTLIB:library");
+//    }
 
-    //printf("%s\n", line.build_options);
-    systemf("%s", line.build_options);
-    fm_popdir(temp);
+//    fm_finish_build_line(&line);
 
-    fflush(stdout);
-}
+//    //printf("%s\n", line.build_options);
+//    systemf("%s", line.build_options);
+//    fm_popdir(temp);
 
-internal void
-buildsuper(Arena *arena, char *cdir, char *file, u32 arch){
-	printf("BUILDSUPER:\n cdir = %s;\n file = %s;\n arch = %s;\n", cdir, file, arch_names[arch]);
-	fflush(stdout);
-
-	Temp_Dir temp = fm_pushdir(fm_str(arena, BUILD_DIR));
-
-	char *build_script_postfix = "";
-	switch (This_OS){
-		case Platform_Windows:
-		{
-			build_script_postfix = "-win";
-		}break;
-		case Platform_Linux:
-		{
-			build_script_postfix = "-linux";
-		}break;
-		case Platform_Mac:
-		{
-			build_script_postfix = "-mac";
-		}break;
-	}
-	char *build_script = fm_str(arena, "custom/bin/buildsuper_", arch_names[arch], build_script_postfix, BAT);
-
-	char *build_command = fm_str(arena, "\"", cdir, "/", build_script, "\" \"", file, "\"");
-	if (This_OS == Platform_Windows){
-		build_command = fm_str(arena, "call ", build_command);
-	}
-	systemf("%s", build_command);
-
-	fm_popdir(temp);
-	fflush(stdout);
-}
-
-//
-// build implementation: gcc
-//
+//    fflush(stdout);
+//}
 
 #elif COMPILER_GCC
 
@@ -387,120 +327,22 @@ buildsuper(Arena *arena, char *cdir, char *file, u32 arch){
 # define GCC_LIBS_X64 GCC_LIBS_COMMON
 # define GCC_LIBS_X86 GCC_LIBS_COMMON
 
+#define compiler_flags GCC_OPTS
+#define debug_flags "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols"
+#define optimization_flags " -O3"
+#define arch_flags " -m64 -DFTECH_64_BIT"
+#define libraries GCC_LIBS_COMMON
+#define icon_flags " "
+#define SHARED_FLAG " -shared"
+#define REMOVE_PROGRAM "rm "
+#define PREPROCESS_FLAG " -E"
+#define OUT_FLAG " -o "
+#define INCLUDE_FLAG " -I"
+#define DEFINE_FLAG " -D"
+
 #else
 # error gcc options not set for this platform
 #endif
-
-internal void
-build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files,
-	  char *out_path, char *out_file, char **defines,
-	  char **exports, char **inc_folders){
-    Build_Line line;
-    fm_init_build_line(&line);
-
-    switch (arch){
-        case Arch_X64:
-        fm_add_to_line(line, "-m64");
-        fm_add_to_line(line, "-DFTECH_64_BIT"); break;
-
-        case Arch_X86:
-        fm_add_to_line(line, "-m32");
-        fm_add_to_line(line, "-DFTECH_32_BIT"); break;
-
-        default: InvalidPath;
-    }
-
-    if (flags & OPTS){
-        fm_add_to_line(line, GCC_OPTS);
-    }
-
-    fm_add_to_line(line, "-I%s", code_path);
-    if (inc_folders != 0){
-        for (u32 i = 0; inc_folders[i] != 0; ++i){
-            char *str = fm_str(arena, code_path, "/", inc_folders[i]);
-            fm_add_to_line(line, "-I%s", str);
-        }
-    }
-
-    if (flags & DEBUG_INFO){
-		fm_add_to_line(line, "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols");
-    }
-
-    if (flags & OPTIMIZATION){
-        fm_add_to_line(line, "-O3");
-    }
-
-    if (flags & SHARED_CODE){
-        fm_add_to_line(line, "-shared");
-    }
-
-    if (defines != 0){
-        for (u32 i = 0; defines[i]; ++i){
-            char *define_flag = fm_str(arena, "-D", defines[i]);
-            fm_add_to_line(line, "%s", define_flag);
-        }
-    }
-
-    fm_add_to_line(line, "-I\"%s\"", code_path);
-    for (u32 i = 0; code_files[i] != 0; ++i){
-        fm_add_to_line(line, "\"%s\"", code_files[i]);
-    }
-
-    if (flags & LIBS){
-        if (arch == Arch_X64){
-            fm_add_to_line(line, GCC_LIBS_X64);
-        }
-        else if (arch == Arch_X86)
-        {
-            fm_add_to_line(line, GCC_LIBS_X86);
-        }
-    }
-
-    fm_finish_build_line(&line);
-
-    Temp_Dir temp = fm_pushdir(out_path);
-    systemf("g++ %s -o %s", line.build_options, out_file);
-    fm_popdir(temp);
-}
-
-internal void
-buildsuper(Arena *arena, const Project_Layout* project_layout){
-    printf("BUILDSUPER:\n cdir = %s;\n file = %s;\n arch = %s;\n", project_layout->custom_layer_path, project_layout->custom_layer, arch_names[project_layout->arch]);
-	// GENERATE THE PREPROC FILE FOR THE METADATA GENERATOR
-	//       g++ -I"$CODE_HOME" $meta_macros $arch $opts $debug -std=c++11 "$SOURCE" -E -o $preproc_file
-	const char* source = project_layout->custom_layer;
-	char* home_folder = project_layout->custom_layer_path;
-	char* meta_macros = "-DMETA_PASS";
-	char* arch_flag = "-m64";
-	char* opts = "-Wno-write-strings -Wno-null-dereference -Wno-comment -Wno-switch -Wno-missing-declarations -Wno-logical-op-parentheses -g -DOS_LINUX=1 -DOS_WINDOWS=0 -DOS_MAC=0";
-	char* debug = "-g3 -ggdb3";
-	char* preproc_file = fm_str(arena, project_layout->custom_layer_path, SLASH, "4coder_command_metadata.i ");
-	systemf("g++ -I%s %s %s %s %s -std=c++11 %s -E -o %s", home_folder, meta_macros, arch_flag, opts, debug, source, preproc_file);
-
-	// BUILD THE METADATA GENERATOR
-	//      g++ -I"$CODE_HOME" $opts $debug -std=c++11 "$CODE_HOME/4coder_metadata_generator.cpp" -o "$CODE_HOME/metadata_generator"
-	char* metadata_generator_cpp = fm_str(arena, project_layout->custom_layer_path, SLASH, "4coder_metadata_generator.cpp");
-	char* metadata_generator     = fm_str(arena, project_layout->custom_layer_path, SLASH, "metadata_generator");
-	systemf("g++ -I%s %s %s -std=c++11 %s -o %s", home_folder, opts, debug, metadata_generator_cpp, metadata_generator);
-
-	// GENERATE THE METADATA
-	//       "$CODE_HOME/metadata_generator" -R "$CODE_HOME" "$PWD/$preproc_file"
-	systemf("%s -R %s %s", metadata_generator, home_folder, preproc_file);
-
-	// BUDILD THE CUSTOM LAYER
-	//      g++ -I"$CODE_HOME" $arch $opts $debug -std=gnu++0x "$SOURCE" -shared -o custom_4coder.so -fPIC
-	char* shared_library = project_layout->custom_layer_out;
-	systemf("g++ -I%s %s %s %s -std=gnu++0x %s  -shared -o %s -fPIC", home_folder, arch_flag, opts, debug, source, shared_library);
-
-	// REMOVE THE METADATA GENERATOR
-	//rm "$CODE_HOME/metadata_generator"
-	systemf("rm %s", metadata_generator);
-
-	// REMOVE THE PREPROC FILE
-	//rm $preproc_file
-	systemf("rm %s", preproc_file);
-	fflush(stdout);
-}
 
 #elif COMPILER_CLANG
 
@@ -518,175 +360,163 @@ buildsuper(Arena *arena, const Project_Layout* project_layout){
 "-framework CoreServices " \
 "-framework OpenGL -framework IOKit -framework Metal -framework MetalKit "
 
+#define FOREIGN "./non-source/foreign"
+
 #define CLANG_LIBS_X64 CLANG_LIBS_COMMON \
 FOREIGN "/x64/libfreetype-mac.a"
 
 #define CLANG_LIBS_X86 CLANG_LIBS_COMMON \
 FOREIGN "/x86/libfreetype-mac.a"
 
+#define compiler_flags CLANG_OPTS
+#define debug_flags "-g3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols"
+#define optimization_flags " -O3"
+#define arch_flags " -m64 -DFTECH_64_BIT"
+#define libraries CLANG_LIBS_COMMON FOREIGN "/x64/libfreetype-mac.a"
+#define icon_flags " "
+#define SHARED_FLAG " -shared"
+#define REMOVE_PROGRAM "rm "
+#define PREPROCESS_FLAG " -E"
+#define OUT_FLAG " -o "
+#define INCLUDE_FLAG " -I"
+#define DEFINE_FLAG " -D"
+
 #else
 # error clang options not set for this platform
 #endif
-
-internal void
-build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, char *out_path, char *out_file, char **defines, char **exports, char **inc_folders){
-    Build_Line line;
-    fm_init_build_line(&line);
-
-    switch (arch){
-        case Arch_X64:
-        fm_add_to_line(line, "-m64");
-        fm_add_to_line(line, "-DFTECH_64_BIT"); break;
-
-        case Arch_X86:
-        fm_add_to_line(line, "-m32");
-        fm_add_to_line(line, "-DFTECH_32_BIT"); break;
-
-        default: InvalidPath;
-    }
-
-    if (flags & OPTS){
-        fm_add_to_line(line, CLANG_OPTS);
-    }
-
-    fm_add_to_line(line, "-I%s", code_path);
-    if (inc_folders != 0){
-        for (u32 i = 0; inc_folders[i] != 0; ++i){
-            char *str = fm_str(arena, code_path, "/", inc_folders[i]);
-            fm_add_to_line(line, "-I%s", str);
-        }
-    }
-
-    if (flags & DEBUG_INFO){
-        fm_add_to_line(line, "-g -O0");
-    }
-
-    if (flags & OPTIMIZATION){
-        fm_add_to_line(line, "-O3");
-    }
-
-    if (flags & SHARED_CODE){
-        fm_add_to_line(line, "-shared");
-    }
-
-    if (defines != 0){
-        for (u32 i = 0; defines[i]; ++i){
-            char *define_flag = fm_str(arena, "-D", defines[i]);
-            fm_add_to_line(line, "%s", define_flag);
-        }
-    }
-
-    fm_add_to_line(line, "-I\"%s\"", code_path);
-    for (u32 i = 0; code_files[i] != 0; ++i){
-        fm_add_to_line(line, "\"%s/%s\"", code_path, code_files[i]);
-    }
-
-    if (flags & LIBS){
-        if (arch == Arch_X64){
-            fm_add_to_line(line, CLANG_LIBS_X64);
-        }
-        else if (arch == Arch_X86)
-        {
-            fm_add_to_line(line, CLANG_LIBS_X86);
-        }
-    }
-
-    fm_finish_build_line(&line);
-
-    Temp_Dir temp = fm_pushdir(out_path);
-
-    // systemf("clang++ %s -E -o %s", line.build_options, "4ed.i");
-    systemf("clang++ %s -o %s", line.build_options, out_file);
-    fm_popdir(temp);
-}
-
-internal void
-buildsuper(Arena *arena, char *cdir, char *file, u32 arch){
-	printf("BUILDSUPER:\n cdir = %s;\n file = %s;\n arch = %s;\n", cdir, file, arch_names[arch]);
-	fflush(stdout);
-
-	Temp_Dir temp = fm_pushdir(fm_str(arena, BUILD_DIR));
-
-	char *build_script_postfix = "";
-	switch (This_OS){
-		case Platform_Windows:
-		{
-			build_script_postfix = "-win";
-		}break;
-		case Platform_Linux:
-		{
-			build_script_postfix = "-linux";
-		}break;
-		case Platform_Mac:
-		{
-			build_script_postfix = "-mac";
-		}break;
-	}
-	char *build_script = fm_str(arena, "custom/bin/buildsuper_", arch_names[arch], build_script_postfix, BAT);
-
-	char *build_command = fm_str(arena, "\"", cdir, "/", build_script, "\" \"", file, "\"");
-	if (This_OS == Platform_Windows){
-		build_command = fm_str(arena, "call ", build_command);
-	}
-	systemf("%s", build_command);
-
-	fm_popdir(temp);
-	fflush(stdout);
-}
 
 #else
 # error build function not defined for this compiler
 #endif
 
 internal void
-build(Arena *arena, u32 flags, u32 arch, char *code_path, char *code_file, char *out_path, char *out_file, char **defines, char **exports, char **inc_folders){
-    char **code_files = fm_list_one_item(arena, code_file);
-    build(arena, flags, arch, code_path, code_files, out_path, out_file, defines, exports, inc_folders);
+buildsuper(Arena *arena, const Project::Layout* layout, const Project::Compilation* compilation)
+{
+	// GENERATE THE PREPROC FILE FOR THE METADATA GENERATOR
+	char* include_home_folder = fm_str(arena, INCLUDE_FLAG, layout->custom_layer_path);
+	char* source = compilation->custom_layer;
+	char* meta_macros = DEFINE_FLAG "META_PASS";
+	char* arch_flag = compilation->arch_options;
+	char* opts = compilation->compiler_options;
+	char* debug = compilation->debug_options;
+	char* preproc_file = fm_str(arena, layout->custom_layer_path, SLASH, "4coder_command_metadata.i ");
+	systemf("%s %s %s %s %s %s %s %s %s %s",
+			compilation->compiler,
+			include_home_folder,
+			meta_macros,
+			arch_flag,
+			opts,
+			debug,
+			source,
+			PREPROCESS_FLAG,
+			OUT_FLAG,
+			preproc_file);
+
+	// BUILD THE METADATA GENERATOR
+	char* metadata_generator_cpp = fm_str(arena, layout->custom_layer_path, SLASH, "4coder_metadata_generator.cpp");
+	char* metadata_generator     = fm_str(arena, layout->custom_layer_path, SLASH, "metadata_generator");
+	systemf("%s %s %s %s %s %s %s",
+			compilation->compiler,
+			include_home_folder,
+			opts,
+			debug,
+			metadata_generator_cpp,
+			OUT_FLAG,
+			metadata_generator);
+
+	// GENERATE THE METADATA
+	char* home_folder = layout->custom_layer_path;
+	systemf("%s -R %s %s",
+			metadata_generator,
+			home_folder,
+			preproc_file);
+
+	// BUDILD THE CUSTOM LAYER
+	char* shared_library = compilation->custom_layer_out;
+	systemf("%s %s %s %s %s %s %s %s %s",
+			compilation->compiler,
+			include_home_folder,
+			arch_flag,
+			opts,
+			debug,
+			source,
+			SHARED_FLAG,
+			OUT_FLAG,
+			shared_library);
+
+	// REMOVE THE METADATA GENERATOR
+	systemf("%s %s",
+			REMOVE_PROGRAM,
+			metadata_generator);
+
+	// REMOVE THE PREPROC FILE
+	systemf("%s %s",
+			REMOVE_PROGRAM,
+			preproc_file);
+	fflush(stdout);
 }
 
 internal void
-build_main(Arena *arena, const Project_Layout* project_layout, b32 update_local_theme){
-    char* build_dir = project_layout->build_path;//fm_str(arena, project_root, SLASH, BUILD_DIR);
+build(Arena *arena, u32 flags, const Project::Layout* layout, const Project::Compilation* compilation)
+{
+    Build_Line line;
+    fm_init_build_line(&line);
+
+	fm_add_to_line(line, " %s", compilation->arch_options);
+	fm_add_to_line(line, " %s", compilation->compiler_options);
+	fm_add_to_line(line, " %s", compilation->defines);
+
+    fm_add_to_line(line, "%s%s", INCLUDE_FLAG, layout->core_layer_path);
+	fm_add_to_line(line, "%s%s", INCLUDE_FLAG, layout->custom_layer_path);
+
+    if (flags & DEBUG_INFO) { fm_add_to_line(line, "", compilation->debug_options); }
+	if (flags & OPTIMIZATION) { fm_add_to_line(line, "", compilation->optimization_options); }
+
+	if(flags & SHARED_CODE)
+	{
+		fm_add_to_line(line, SHARED_FLAG);
+		fm_add_to_line(line, " %s", compilation->so_includes);
+		fm_add_to_line(line, " %s", compilation->app_target);
+		fm_add_to_line(line, OUT_FLAG);
+		fm_add_to_line(line, " %s", compilation->app_target_out);
+	}
+	else
+	{
+		fm_add_to_line(line, " %s", compilation->bin_includes);
+		fm_add_to_line(line, " %s", compilation->library);
+		fm_add_to_line(line, " %s", compilation->icon);
+		fm_add_to_line(line, " %s", compilation->platform_layer);
+		fm_add_to_line(line, OUT_FLAG);
+		fm_add_to_line(line, " %s", compilation->platform_layer_out);
+	}
+
+    fm_finish_build_line(&line);
+
+    systemf("%s %s", compilation->compiler, line.build_options);
+}
+
+internal void
+build_main(Arena *arena, const Project* project, b32 update_local_theme){
 
     {
-        char **exports = fm_list_one_item(arena, "app_get_functions");
-        char *app_target_file = project_layout->app_target;//fm_str(arena, core_layer_path, SLASH "4ed_app_target.cpp");
-		char* out_shared_file = project_layout->app_target_out;//fm_str(arena, build_dir, SLASH, "4ed_app" DLL);
-        char **build_includes = includes;
-		u32 flags = project_layout->flags;
-
+		u32 flags = project->compilation.flags;
         build(arena,
 			  OPTS | SHARED_CODE | flags,
-			  project_layout->arch,
-			  project_layout->core_layer_path,
-			  app_target_file,
-			  project_layout->build_path,
-			  out_shared_file,
-			  get_defines_from_flags(arena, flags),
-			  exports,
-			  build_includes);
+			  &project->layout,
+			  &project->compilation);
     }
 
     {
-        char **inc = (char**)fm_list(arena, includes, platform_includes[This_OS][This_Compiler]);
-		//char* out_bin_file = fm_str(arena, build_dir, SLASH, "4ed" EXE);
-		//char* platform_file = fm_str(arena, core_layer_path, SLASH, platform_layers[This_OS][0]);
-		u32 flags = project_layout->flags;
+		u32 flags = project->compilation.flags;
 		build(arena,
 			  OPTS | LIBS | ICON | flags,
-			  project_layout->arch,
-			  project_layout->core_layer_path,
-			  project_layout->platform_layer,
-			  project_layout->build_path,
-			  project_layout->platform_layer_out,
-			  get_defines_from_flags(arena, flags),
-			  0,
-			  inc);
+			  &project->layout,
+			  &project->compilation);
     }
 
     if (update_local_theme){
-        char *themes_folder = project_layout->build_themes_path;//fm_str(arena, project_root, SLASH, BUILD_DIR, SLASH, "themes");
-        char *source_themes_folder = project_layout->ship_themes_path;//fm_str(arena, core_layer_path, SLASH, "ship_files/themes");
+        char *themes_folder = project->layout.build_themes_path;//fm_str(arena, project_root, SLASH, BUILD_DIR, SLASH, "themes");
+        char *source_themes_folder = project->layout.ship_themes_path;//fm_str(arena, core_layer_path, SLASH, "ship_files/themes");
         fm_clear_folder(themes_folder);
         fm_make_folder_if_missing(arena, themes_folder);
         fm_copy_all(source_themes_folder, themes_folder);
@@ -701,15 +531,15 @@ get_4coder_dist_name(Arena *arena, u32 platform, char *tier, u32 arch){
     if (platform != Platform_None){
         name = fm_str(arena, name, "-", platform_names[platform]);
     }
-    if (arch != Arch_None){
-        name = fm_str(arena, name, "-", arch_names[arch]);
-    }
+
+	name = fm_str(arena, name, "-x64");
+
     return(name);
 }
 
 function void
 package_for_arch(Arena *arena, u32 arch, char *cdir, char *build_dir, char *pack_dir, i32 tier, char *tier_name,  char *current_dist_tier, u32 flags, char** dist_files, i32 dist_file_count){
-    char *arch_name  = arch_names[arch];
+    char *arch_name  = "x64";
     char *parent_dir = fm_str(arena, current_dist_tier, "_", arch_name);
     char *dir        = fm_str(arena, parent_dir, SLASH "4coder");
     char *zip_dir    = fm_str(arena, pack_dir, SLASH, tier_name, "_", arch_name);
@@ -747,7 +577,7 @@ package_for_arch(Arena *arena, u32 arch, char *cdir, char *build_dir, char *pack
         fm_copy_all(custom_src_dir, custom_dst_dir);
     }
 
-    char *dist_name = get_4coder_dist_name(arena, This_OS, tier_name, arch);
+    char *dist_name = get_4coder_dist_name(arena, This_OS, tier_name, 0);
     char *zip_name = fm_str(arena, zip_dir, SLASH, dist_name, ".zip");
     fm_make_folder_if_missing(arena, zip_dir);
     fm_zip(parent_dir, "4coder", zip_name);
@@ -766,10 +596,10 @@ tier_flags(Tier_Code code){
 }
 
 internal void
-package(Arena *arena, char *cdir, Tier_Code tier, Arch_Code arch){
+package(Arena *arena, char *cdir, Tier_Code tier, u32 arch){
     // NOTE(allen): meta
-    char *build_dir = fm_str(arena, BUILD_DIR);
-    char *pack_dir = fm_str(arena, PACK_DIR);
+    char *build_dir = fm_str(arena, "./build");
+    char *pack_dir = fm_str(arena, "./distributions");
     char *dist_files[2];
     dist_files[0] = fm_str(arena, "non-source/dist_files");
     dist_files[1] = fm_str(arena, "ship_files");
@@ -839,6 +669,19 @@ int main(int argc, char **argv){
 	i32 n = fm_get_current_directory(project_root, sizeof(project_root));
     Assert(n < sizeof(project_root));
 
+    u32 flags = SUPER;
+	Tier_Code tier = Tier_Super;
+
+	bool isDevelopmentBuild = is_in_argv("dev", argc, argv);
+	bool isOptimizedBuild   = is_in_argv("opt", argc, argv);
+	//bool isX86Arch          = is_in_argv("x86", argc, argv) ;
+	bool shouldPackage      = is_in_argv("package", argc, argv);
+
+	if (isDevelopmentBuild) { flags |= DEBUG_INFO | INTERNAL; }
+	if (isOptimizedBuild) { flags |= OPTIMIZATION; }
+	//if (isX86Arch) { arch = Arch_X86; }
+
+
 	char* core_layer_path = fm_str(&arena, project_root, SLASH, "code");
 	char* custom_layer_path = fm_str(&arena, core_layer_path, SLASH, "custom");
 	char* build_path = fm_str(&arena, project_root, SLASH, "build");
@@ -858,63 +701,91 @@ int main(int argc, char **argv){
 	char* custom_layer = fm_str(&arena, custom_layer_path, SLASH, "4coder_default_bindings.cpp");
 	char* custom_layer_out = fm_str(&arena, build_path, SLASH, "custom_4coder" DLL);
 
+	char* platform_compiler_options = compiler_flags;
+	char* platform_debug_options = debug_flags;
+	char* platform_optimization_options = optimization_flags;
+	char* platform_arch_options = arch_flags;
+	char* platform_library_list = libraries;
+	char* platform_icon = icon_flags;
+
+	char* defines_str = fm_str(&arena,
+							   DEFINE_FLAG, HasFlag(flags, SHIP) ? "SHIP_MODE": "unused_flag",
+							   DEFINE_FLAG, HasFlag(flags, INTERNAL) ? "FRED_INTERNAL": "unused_flag",
+							   DEFINE_FLAG, HasFlag(flags, SUPER) ? "FRED_SUPER": "unused_flag"
+							   );
+
+	char* platform_defines_list = defines_str;
+	char* platform_exports_list = fm_list_one_item(&arena, "app_get_functions")[0];
+
+	char* so_includes = fm_str(&arena, INCLUDE_FLAG, custom_layer_path, INCLUDE_FLAG, foreign_path, SLASH, "freetype2");
+	char* bin_includes = fm_str(&arena, so_includes, INCLUDE_FLAG, "platform_unix");
+
+	u32 os_id = This_OS;
+	char* os = platform_names[This_OS];
+	u32 compiler_id = This_Compiler;
+	char* compiler = compiler_names[This_Compiler];
 
 	char* custom_target = get_custom_target(argc, argv);
 	if (custom_target) { custom_layer = custom_target; }
 
-    u32 flags = SUPER;
-    u32 arch = Arch_X64;
-	Tier_Code tier = Tier_Super;
-
-	bool isDevelopmentBuild = is_in_argv("dev", argc, argv);
-	bool isOptimizedBuild   = is_in_argv("opt", argc, argv);
-	bool isX86Arch          = is_in_argv("x86", argc, argv) ;
-	bool shouldPackage      = is_in_argv("package", argc, argv);
-
-	if (isDevelopmentBuild) { flags |= DEBUG_INFO | INTERNAL; }
-	if (isOptimizedBuild) { flags |= OPTIMIZATION; }
-	if (isX86Arch) { arch = Arch_X86; }
-
-	const Project_Layout project_layout =
+	const Project project =
 	{
-		//FOLDERS
-		.project_root_path = project_root,
-		.core_layer_path = core_layer_path,
-		.custom_layer_path = custom_layer_path,
-		.build_path = build_path,
-		.ship_files_path = ship_files_path,
-		.ship_themes_path = ship_themes_path,
-		.build_themes_path = build_themes_path,
-		.site_path = site_path,
-		.distributions_path = distributions_path,
-		.non_source_path = non_source_path,
-		.dist_files_path = dist_files_path,
-		.foreign_path = foreign_path,
-		// FILES
-		.app_target = app_target,
-		.app_target_out = app_target_out,
-		.platform_layer = platform_layer,
-		.platform_layer_out = platform_layer_out,
-		.custom_layer = custom_layer,
-		.custom_layer_out = custom_layer_out,
-		//FLAGS
-		.flags = flags,
-		.arch = arch,
-		.os_id = This_OS,
-		.os = platform_names[This_OS],
-		.compiler_id = This_Compiler,
-		.compiler = compiler_names[This_Compiler],
+		.layout =
+		{
+			.project_root_path = project_root,
+			.core_layer_path = core_layer_path,
+			.custom_layer_path = custom_layer_path,
+			.build_path = build_path,
+			.ship_files_path = ship_files_path,
+			.ship_themes_path = ship_themes_path,
+			.build_themes_path = build_themes_path,
+			.site_path = site_path,
+			.distributions_path = distributions_path,
+			.non_source_path = non_source_path,
+			.dist_files_path = dist_files_path,
+			.foreign_path = foreign_path,
+		},
+		.compilation =
+		{
+			.app_target = app_target,
+			.app_target_out = app_target_out,
+			.platform_layer = platform_layer,
+			.platform_layer_out = platform_layer_out,
+			.custom_layer = custom_layer,
+			.custom_layer_out = custom_layer_out,
+
+			.compiler_options = platform_compiler_options,
+			.debug_options = platform_debug_options,
+			.optimization_options = platform_optimization_options,
+			.arch_options = platform_arch_options,
+
+			.defines = platform_defines_list,
+			.exports = platform_exports_list,
+			.library = platform_library_list,
+			.icon = platform_icon,
+
+			.so_includes = so_includes,
+			.bin_includes = bin_includes,
+
+			//FLAGS
+			.flags = flags,
+			//.arch = arch,
+			.os_id = os_id,
+			.os = os,
+			.compiler_id = compiler_id,
+			.compiler = compiler,
+		}
 	};
 
 	if (!shouldPackage)
 	{
 		const bool shouldUpdateThemes = true;
-		buildsuper(&arena, &project_layout);
-		build_main(&arena, &project_layout, shouldUpdateThemes);
+		buildsuper(&arena, &project.layout, &project.compilation);
+		build_main(&arena, &project, shouldUpdateThemes);
 	}
 	else
 	{
-		package(&arena, custom_layer_path, tier, arch);
+		package(&arena, custom_layer_path, tier, 0);
 	}
 
     return(error_state);
