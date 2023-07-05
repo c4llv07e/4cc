@@ -55,8 +55,9 @@ enum{
     Compiler_CL,
     Compiler_GCC,
     Compiler_Clang,
-    //
-    Compiler_COUNT,
+	Compiler_Circle,
+	//
+	Compiler_COUNT,
     Compiler_None = Compiler_COUNT,
 };
 
@@ -64,6 +65,7 @@ char *compiler_names[] = {
     "cl",
     "g++",
     "clang",
+    "circle",
 };
 
 #if OS_WINDOWS
@@ -82,10 +84,11 @@ char *compiler_names[] = {
 # define This_Compiler Compiler_GCC
 #elif COMPILER_CLANG
 # define This_Compiler Compiler_Clang
+#elif COMPILER_CIRCLE
+# define This_Compiler Compiler_Circle
 #else
 # error This compilers is not enumerated.
 #endif
-
 
 struct Project
 {
@@ -151,19 +154,6 @@ char** platform_layers[Platform_COUNT] = {
 	/*mac*/mac_layer,
 };
 
-char *windows_cl_platform_inc[] = { "platform_all", 0 };
-char *linux_gcc_platform_inc[] = { "platform_all", "platform_unix", 0 };
-
-char *mac_clang_platform_inc[] = { "platform_all", "platform_unix", 0 };
-
-char **platform_includes[Platform_COUNT][Compiler_COUNT] = {
-    {windows_cl_platform_inc, 0                     , 0},
-    {0                      , linux_gcc_platform_inc, 0},
-    {0                      , 0                     , mac_clang_platform_inc},
-};
-
-char *default_custom_target = "4coder_default_bindings.cpp";
-
 // NOTE(allen): Build flags
 
 enum{
@@ -200,7 +190,7 @@ enum{
 #define arch_flags " -MACHINE:X64 -DFTECH_64_BIT"
 #define libraries CL_LIBS_COMMON FOREIGN_WIN "\\x64\\freetype.lib " " -NODEFAULTLIB:library"
 #define exports " -OPT:REF -EXPORT:"
-#define icon_flags " "
+#define icon_flags CL_ICON
 #define SHARED_FLAG " -LD"
 #define REMOVE_PROGRAM "del "
 #define PREPROCESS_FLAG " -E"
@@ -324,16 +314,13 @@ enum{
 "-lX11 -lpthread -lm -lrt "   \
 "-lGL -ldl -lXfixes -lfreetype -lfontconfig"
 
-# define GCC_LIBS_X64 GCC_LIBS_COMMON
-# define GCC_LIBS_X86 GCC_LIBS_COMMON
-
 #define compiler_flags GCC_OPTS
 #define debug_flags "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols"
 #define optimization_flags " -O3"
 #define arch_flags " -m64 -DFTECH_64_BIT"
 #define libraries GCC_LIBS_COMMON
 #define icon_flags " "
-#define SHARED_FLAG " -shared"
+#define SHARED_FLAG " -shared -fPIC"
 #define REMOVE_PROGRAM "rm "
 #define PREPROCESS_FLAG " -E"
 #define OUT_FLAG " -o "
@@ -353,7 +340,7 @@ enum{
 "-Wno-comment -Wno-switch -Wno-null-dereference " \
 "-Wno-tautological-compare -Wno-unused-result " \
 "-Wno-missing-declarations -Wno-nullability-completeness " \
-"-std=c++11 "
+"-std=c++11 -v"
 
 #define CLANG_LIBS_COMMON \
 "-framework Cocoa -framework QuartzCore " \
@@ -369,12 +356,12 @@ FOREIGN "/x64/libfreetype-mac.a"
 FOREIGN "/x86/libfreetype-mac.a"
 
 #define compiler_flags CLANG_OPTS
-#define debug_flags "-g3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols"
+#define debug_flags "-g3 -O0 -fno-eliminate-unused-debug-types "
 #define optimization_flags " -O3"
 #define arch_flags " -m64 -DFTECH_64_BIT"
 #define libraries CLANG_LIBS_COMMON FOREIGN "/x64/libfreetype-mac.a"
 #define icon_flags " "
-#define SHARED_FLAG " -shared"
+#define SHARED_FLAG " -shared -fPIC"
 #define REMOVE_PROGRAM "rm "
 #define PREPROCESS_FLAG " -E"
 #define OUT_FLAG " -o "
@@ -385,8 +372,36 @@ FOREIGN "/x86/libfreetype-mac.a"
 # error clang options not set for this platform
 #endif
 
+#elif COMPILER_CIRCLE
+
+# if OS_LINUX
+#  define CIRCLE_OPTS \
+"-Wno-writable-strings -Wno-deprecated-declarations " \
+"-Wno-comment -Wno-switch -Wno-null-dereference " \
+"-Wno-tautological-compare  " \
+"-std=c++11"
+
+#  define CIRCLE_LIBS_COMMON       \
+"-lX11 -lpthread -lm -lrt "   \
+"-lGL -ldl -lXfixes -lfreetype -lfontconfig"
+
+#  define compiler_flags CIRCLE_OPTS
+#  define debug_flags "-g -O0  -fvar-tracking -fno-eliminate-unused-debug-symbols"
+#  define optimization_flags " -O3"
+#  define arch_flags " -m64 -DFTECH_64_BIT"
+#  define libraries CIRCLE_LIBS_COMMON
+#  define icon_flags " "
+#  define SHARED_FLAG " -shared -fPIC"
+#  define REMOVE_PROGRAM "rm "
+#  define PREPROCESS_FLAG " -E"
+#  define OUT_FLAG " -o "
+#  define INCLUDE_FLAG " -I"
+#  define DEFINE_FLAG " -D"
+
 #else
 # error build function not defined for this compiler
+#endif
+
 #endif
 
 internal void
@@ -498,25 +513,17 @@ build(Arena *arena, u32 flags, const Project::Layout* layout, const Project::Com
 internal void
 build_main(Arena *arena, const Project* project, b32 update_local_theme){
 
-    {
-		u32 flags = project->compilation.flags;
-        build(arena,
-			  OPTS | SHARED_CODE | flags,
-			  &project->layout,
-			  &project->compilation);
-    }
+	u32 flags = project->compilation.flags;
 
-    {
-		u32 flags = project->compilation.flags;
-		build(arena,
-			  OPTS | LIBS | ICON | flags,
-			  &project->layout,
-			  &project->compilation);
-    }
+	// Build the 4ed_app - shared library
+	build(arena, SHARED_CODE | flags, &project->layout, &project->compilation);
+
+	// Build the 4ed binary
+	build(arena, LIBS | flags, &project->layout, &project->compilation);
 
     if (update_local_theme){
-        char *themes_folder = project->layout.build_themes_path;//fm_str(arena, project_root, SLASH, BUILD_DIR, SLASH, "themes");
-        char *source_themes_folder = project->layout.ship_themes_path;//fm_str(arena, core_layer_path, SLASH, "ship_files/themes");
+        char *themes_folder = project->layout.build_themes_path;
+        char *source_themes_folder = project->layout.ship_themes_path;
         fm_clear_folder(themes_folder);
         fm_make_folder_if_missing(arena, themes_folder);
         fm_copy_all(source_themes_folder, themes_folder);
