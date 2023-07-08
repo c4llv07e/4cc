@@ -15,20 +15,29 @@ By compiling the 4ed_build.cpp file in the root directory and running the result
     - `$ sudo apt install build-essential libx11-dev libxfixes-dev libglx-dev mesa-common-dev libasound2-dev libfreetype-dev libfontconfig-dev`
 
 2. Compile and run `4ed_build.cpp`
+
 	1.Compile
+   
 		`g++     4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings    -o 4ed_build`
+
 	or (sadly it doesn't build with the circle compiler yet)
+
 		`circle  4ed_build.cpp -Icode -Icode/custom --Wno-writable-strings -o 4ed_build && ./4ed_build`
+
 	or
 		`clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build && ./4ed_build`
 
 	2. Running the build system
-		The build system takes as input a few flags `dev` (debug), `opt` (optimized), `package', `custom=<target>`.
-		The easiest way of getting 4coder is to run
-		`4ed_build package`
-		this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.so` (custom layer) and puts the runtime resourses next to the binary (`bindings.4coder`, `config.4coder`, `font` directory, `themes` directory, and some custom layers).
+
+    	The build system takes as input a few flags `dev` (debug), `opt` (optimized), `package`, `custom=<target>`.
+	The easiest way of getting 4coder is to run
+
+	`4ed_build package`
+
+   	this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.so` (custom layer) and puts the runtime resourses next to the binary (`bindings.4coder`, `config.4coder`, `font` directory, `themes` directory, and some custom layers).
 
 ## Mac (Untested)
+
 	1.Compile
 		`clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build && ./4ed_build`
 
