@@ -7,7 +7,7 @@ To build 4coder you only need a C++ compiler (`cl`, `g++`, `clang++`, `circle (a
 By compiling the 4ed_build.cpp file in the root directory and running the resulting binary (most of the code base uses `char*` for strings in read-only data, to clean up the output we remove those warnings for each compiler.
 
 ## Windows (Untested)
-` cl /Wno-write-strings`
+	` cl /Wno-write-strings`
 
 ## Linux
 > tested on Ubuntu 22.04:
@@ -22,30 +22,30 @@ By compiling the 4ed_build.cpp file in the root directory and running the result
 
 	or (sadly it doesn't build with the circle compiler yet)
 
-		`circle  4ed_build.cpp -Icode -Icode/custom --Wno-writable-strings -o 4ed_build && ./4ed_build`
+		`circle  4ed_build.cpp -Icode -Icode/custom --Wno-writable-strings -o 4ed_build `
 
 	or
 
-		`clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build && ./4ed_build`
+		`clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build `
 
 	2. Running the build system
 
     	The build system takes as input a few flags `dev` (debug), `opt` (optimized), `package`, `custom=<target>`.
 	The easiest way of getting 4coder is to run
 
-	`4ed_build package`
+		`4ed_build package`
 
    	this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.so` (custom layer) and puts the runtime resourses next to the binary (`bindings.4coder`, `config.4coder`, `font` directory, `themes` directory, and some custom layers).
 
 ## Mac (Untested)
 1.Compile
 
-	`clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build && ./4ed_build`
+	`clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build`
 
 2. Running the build system
 The build system takes as input a few flags `dev` (debug), `opt` (optimized), `package`, `custom=<target>`.
 The easiest way of getting 4coder is to run
 
-`4ed_build package`
+	`4ed_build package`
 
 this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.so` (custom layer) and puts the runtime resourses next to the binary (`bindings.4coder`, `config.4coder`, `font` directory, `themes` directory, and some custom layers).
