@@ -114,7 +114,7 @@ line.build_options_prev, __VA_ARGS__);  \
 fm__swap_ptr(&line.build_options, &line.build_options_prev); \
 }while(0)
 
-#elif COMPILER_GCC | COMPILER_CLANG
+#elif COMPILER_GCC | COMPILER_CLANG | COMPILER_CIRCLE
 
 #define fm_add_to_line(line, str, ...) do{                   \
 snprintf(line.build_options, line.build_max, "%s " str,  \
@@ -248,7 +248,7 @@ extern "C"{
     BOOL WINAPI QueryPerformanceFrequency(_Out_ LARGE_INTEGER *lpFrequency);
     BOOL WINAPI CreateDirectoryA(_In_ LPCTSTR lpPathName, _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes);
     BOOL WINAPI CopyFileA(_In_ LPCTSTR lpExistingFileName, _In_ LPCTSTR lpNewFileName, _In_ BOOL bFailIfExists);
-    
+
     HANDLE WINAPI CreateFileA(_In_ LPCTSTR lpFileName, _In_ DWORD dwDesiredAccess, _In_ DWORD dwShareMode,_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes, _In_ DWORD dwCreationDisposition, _In_ DWORD dwFlagsAndAttributes, _In_opt_ HANDLE hTemplateFile);
     BOOL WINAPI WriteFile(_In_ HANDLE hFile, _In_ LPCVOID lpBuffer, _In_ DWORD nNumberOfBytesToWrite, _Out_opt_ LPDWORD lpNumberOfBytesWritten, _Inout_opt_ LPOVERLAPPED lpOverlapped);
     BOOL WINAPI ReadFile(_In_ HANDLE hFile, _Out_ LPVOID lpBuffer, _In_ DWORD nNumberOfBytesToRead, _Out_opt_ LPDWORD lpNumberOfBytesRead, _Inout_opt_ LPOVERLAPPED lpOverlapped);
@@ -414,21 +414,21 @@ fm_zip(char *parent, char *folder, char *dest){
         printf("zipping %s\\%s to %s\n", parent, folder, dest);
     }
     fflush(stdout);
-    
+
     char cdir[512];
     fm_get_current_directory(cdir, sizeof(cdir));
-    
+
     char *hide_output = " > nul >> nul";
     char *show_output = "";
     char *output_rule = hide_output;
     if (fm__show_details_for_zip_output()){
         output_rule = show_output;
     }
-    
+
     Temp_Dir temp = fm_pushdir(parent);
     systemf("%s\\bin\\zip %s\\4ed_gobble.zip%s", cdir, cdir, output_rule);
     fm_popdir(temp);
-    
+
     systemf("copy %s\\4ed_gobble.zip %s%s & del %s\\4ed_gobble.zip%s",
             cdir, dest, output_rule, cdir, output_rule);
 }
@@ -565,14 +565,14 @@ fm_zip(char *parent, char *folder, char *file){
         printf("zipping %s/%s to %s\n", parent, folder, file);
     }
     fflush(stdout);
-    
+
     char *hide_output = " > nul 2> nul";
     char *show_output = "";
     char *output_rule = hide_output;
     if (fm__show_details_for_zip_output()){
         output_rule = show_output;
     }
-    
+
     Temp_Dir temp = fm_pushdir(parent);
     systemf("zip -r %s %s%s", file, folder, output_rule);
     fm_popdir(temp);

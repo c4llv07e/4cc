@@ -15,16 +15,16 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
     Command_Line_Mode mode = CLMode_App;
     Command_Line_Action action = CLAct_Nothing;
     b32 strict = false;
-    
+
     settings->init_files_max = ArrayCount(settings->init_files);
     for (i32 i = 1; i <= argc; ++i){
         if (i == argc){
-            arg = "";
+            arg = (char*)"";
         }
         else{
             arg = argv[i];
         }
-        
+
         if (arg[0] == '-' && arg[1] == '-'){
             char *long_arg_name = arg+2;
             if (string_match(SCu8(long_arg_name), string_u8_litexpr("custom"))){
@@ -32,7 +32,7 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
                 continue;
             }
         }
-        
+
         switch (mode){
             case CLMode_App:
             {
@@ -44,16 +44,16 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
                             switch (arg[1]){
                                 case 'd': action = CLAct_CustomDLL; strict = false; break;
                                 case 'D': action = CLAct_CustomDLL; strict = true; break;
-                                
+
                                 case 'w': action = CLAct_WindowSize; break;
                                 case 'W': action = CLAct_WindowMaximize; break;
                                 case 'p': action = CLAct_WindowPosition; break;
                                 case 'F': action = CLAct_WindowFullscreen; break;
-                                
+
                                 case 'f': action = CLAct_FontSize; break;
                                 case 'h': action = CLAct_FontUseHinting; --i; break;
                                 case 'U': action = CLAct_UserDirectory; break;
-                                
+
                                 case 'L': action = CLAct_Nothing; break;
                                 //case 'L': enables log, parsed before this is called (because I'm a dumbass)
                             }
@@ -65,7 +65,7 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
                             }
                         }
                     }break;
-                    
+
                     case CLAct_CustomDLL:
                     {
                         plat_settings->custom_dll_is_strict = (b8)strict;
@@ -74,12 +74,12 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
                         }
                         action = CLAct_Nothing;
                     }break;
-                    
+
                     case CLAct_WindowSize:
                     {
                         if (i + 1 < argc){
                             plat_settings->set_window_size = true;
-                            
+
                             i32 w = (i32)string_to_integer(SCu8(argv[i]), 10);
                             i32 h = (i32)string_to_integer(SCu8(argv[i + 1]), 10);
                             if (w > 0){
@@ -88,24 +88,24 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
                             if (h > 0){
                                 plat_settings->window_h = h;
                             }
-                            
+
                             ++i;
                         }
                         action = CLAct_Nothing;
                     }break;
-                    
+
                     case CLAct_WindowMaximize:
                     {
                         --i;
                         plat_settings->maximize_window = true;
                         action = CLAct_Nothing;
                     }break;
-                    
+
                     case CLAct_WindowPosition:
                     {
                         if (i + 1 < argc){
                             plat_settings->set_window_pos = true;
-                            
+
                             i32 x = (i32)string_to_integer(SCu8(argv[i]), 10);
                             i32 y = (i32)string_to_integer(SCu8(argv[i + 1]), 10);
                             if (x > 0){
@@ -114,19 +114,19 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
                             if (y > 0){
                                 plat_settings->window_y = y;
                             }
-                            
+
                             ++i;
                         }
                         action = CLAct_Nothing;
                     }break;
-                    
+
                     case CLAct_WindowFullscreen:
                     {
                         --i;
                         plat_settings->fullscreen_window = true;
                         action = CLAct_Nothing;
                     }break;
-                    
+
                     case CLAct_FontSize:
                     {
                         if (i < argc){
@@ -134,14 +134,14 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
                         }
                         action = CLAct_Nothing;
                     }break;
-                    
+
                     case CLAct_FontUseHinting:
                     {
                         plat_settings->use_hinting = true;
                         settings->use_hinting = plat_settings->use_hinting;
                         action = CLAct_Nothing;
                     }break;
-                    
+
                     case CLAct_UserDirectory:
                     {
                         if (i < argc){
@@ -151,7 +151,7 @@ init_command_line_settings(App_Settings *settings, Plat_Settings *plat_settings,
                     }break;
                 }
             }break;
-            
+
             case CLMode_Custom:
             {
                 settings->custom_flags = argv + i;
@@ -204,38 +204,38 @@ App_Init_Sig(app_init){
     Models *models = (Models*)base_ptr;
     models->keep_playing = true;
     models->hard_exit = false;
-    
+
     models->config_api = api;
     models->virtual_event_arena = make_arena_system();
-    
+
     profile_init(&models->profile_list);
-    
+
     managed_ids_init(tctx->allocator, &models->managed_id_set);
-    
+
     API_VTable_custom custom_vtable = {};
     custom_api_fill_vtable(&custom_vtable);
     API_VTable_system system_vtable = {};
     system_api_fill_vtable(&system_vtable);
     Custom_Layer_Init_Type *custom_init = api.init_apis(&custom_vtable, &system_vtable);
     Assert(custom_init != 0);
-    
+
     // NOTE(allen): coroutines
     coroutine_system_init(&models->coroutines);
-    
+
     // NOTE(allen): font set
     font_set_init(&models->font_set);
-    
+
     // NOTE(allen): live set
     Arena *arena = models->arena;
     {
         models->view_set.count = 0;
         models->view_set.max = MAX_VIEWS;
         models->view_set.views = push_array(arena, View, models->view_set.max);
-        
+
         //dll_init_sentinel
         models->view_set.free_sentinel.next = &models->view_set.free_sentinel;
         models->view_set.free_sentinel.prev = &models->view_set.free_sentinel;
-        
+
         i32 max = models->view_set.max;
         View *view = models->view_set.views;
         for (i32 i = 0; i < max; ++i, ++view){
@@ -246,25 +246,25 @@ App_Init_Sig(app_init){
             view->next->prev = view;
         }
     }
-    
+
     lifetime_allocator_init(tctx->allocator, &models->lifetime_allocator);
     dynamic_workspace_init(&models->lifetime_allocator, DynamicWorkspace_Global, 0, &models->dynamic_workspace);
-    
+
     // NOTE(allen): file setup
     working_set_init(models, &models->working_set);
     Mutex_Lock file_order_lock(models->working_set.mutex);
-    
+
     // NOTE(allen):
     global_history_init(&models->global_history);
     text_layout_init(tctx, &models->text_layouts);
-    
+
     // NOTE(allen): style setup
     {
         Scratch_Block scratch(tctx, arena);
-        
+
         String8 binary_path = system_get_path(scratch, SystemPath_Binary);
         String8 full_path = push_u8_stringf(arena, "%.*sfonts/liberation-mono.ttf", string_expand(binary_path));
-        
+
         Face_Description description = {};
         description.font.file_name = full_path;
         description.parameters.pt_size = 12;
@@ -274,24 +274,24 @@ App_Init_Sig(app_init){
         }
         models->global_face_id = new_face->id;
     }
-    
+
     // NOTE(allen): title space
     models->has_new_title = true;
     models->title_capacity = KB(4);
     models->title_space = push_array(arena, char, models->title_capacity);
     block_copy(models->title_space, WINDOW_NAME, sizeof(WINDOW_NAME));
-    
+
     // NOTE(allen): miscellaneous init
     hot_directory_init(arena, &models->hot_directory, current_directory);
     child_process_container_init(tctx->allocator, &models->child_processes);
     models->period_wakeup_timer = system_wake_up_timer_create();
-    
+
     // NOTE(allen): custom layer init
     Application_Links app = {};
     app.tctx = tctx;
     app.cmd_context = models;
     custom_init(&app);
-    
+
     // NOTE(allen): init baked in buffers
     File_Init init_files[] = {
         { str8_lit("*messages*"), &models->message_buffer , true , },
@@ -299,32 +299,32 @@ App_Init_Sig(app_init){
         { str8_lit("*log*")     , &models->log_buffer     , true , },
         { str8_lit("*keyboard*"), &models->keyboard_buffer, true , },
     };
-    
+
     Buffer_Hook_Function *begin_buffer_func = models->begin_buffer;
     models->begin_buffer = 0;
-    
+
     Heap *heap = &models->heap;
     for (i32 i = 0; i < ArrayCount(init_files); ++i){
         Editing_File *file = working_set_allocate_file(&models->working_set, &models->lifetime_allocator);
         buffer_bind_name(tctx, models, arena, &models->working_set, file, init_files[i].name);
-        
+
         if (init_files[i].ptr != 0){
             *init_files[i].ptr = file;
         }
-        
+
         File_Attributes attributes = {};
         file_create_from_string(tctx, models, file, SCu8(), attributes);
         if (init_files[i].read_only){
             file->settings.read_only = true;
             history_free(tctx, &file->state.history);
         }
-        
+
         file->settings.never_kill = true;
         file_set_unimportant(file, true);
     }
-    
+
     models->begin_buffer = begin_buffer_func;
-    
+
     // NOTE(allen): setup first panel
     {
         Panel *panel = layout_initialize(arena, &models->layout);
@@ -335,50 +335,50 @@ App_Init_Sig(app_init){
 
 App_Step_Sig(app_step){
     Models *models = (Models*)base_ptr;
-    
+
     Mutex_Lock file_order_lock(models->working_set.mutex);
     Scratch_Block scratch(tctx);
-    
+
     models->next_animate_delay = max_u32;
     models->animate_next_frame = false;
-    
+
     // NOTE(allen): per-frame update of models state
     begin_frame(target, &models->font_set);
     models->target = target;
     models->input = input;
-    
+
     // NOTE(allen): OS clipboard event handling
     if (input->clipboard.str != 0){
         co_send_core_event(tctx, models, CoreCode_NewClipboardContents, input->clipboard);
     }
-    
+
     // NOTE(allen): reorganizing panels on screen
     Vec2_i32 prev_dim = layout_get_root_size(&models->layout);
     Vec2_i32 current_dim = V2i32(target->width, target->height);
     layout_set_root_size(&models->layout, current_dim);
-    
+
     // NOTE(allen): update child processes
     f32 dt = input->dt;
     if (dt > 0){
         Temp_Memory_Block temp(scratch);
-        
+
         Child_Process_Container *child_processes = &models->child_processes;
         Child_Process **processes_to_free = push_array(scratch, Child_Process*, child_processes->active_child_process_count);
         i32 processes_to_free_count = 0;
-        
+
         u32 max = KB(128);
         char *dest = push_array(scratch, char, max);
-        
+
         for (Node *node = child_processes->child_process_active_list.next;
              node != &child_processes->child_process_active_list;
              node = node->next){
             Child_Process *child_process = CastFromMember(Child_Process, node, node);
-            
+
             Editing_File *file = child_process->out_file;
             CLI_Handles *cli = &child_process->cli;
-            
+
             // TODO(allen): do(call a 'child process updated hook' let that hook populate the buffer if it so chooses)
-            
+
             b32 edited_file = false;
             u32 amount = 0;
             system_cli_begin_update(cli);
@@ -388,7 +388,7 @@ App_Step_Sig(app_step){
                     edited_file = true;
                 }
             }
-            
+
             if (system_cli_end_update(cli)){
                 if (file != 0){
                     String_Const_u8 str = push_u8_stringf(scratch, "exited with code %d", cli->exit);
@@ -398,17 +398,17 @@ App_Step_Sig(app_step){
                 processes_to_free[processes_to_free_count++] = child_process;
                 child_process_set_return_code(models, child_processes, child_process->id, cli->exit);
             }
-            
+
             if (child_process->cursor_at_end && file != 0){
                 file_cursor_to_end(tctx, models, file);
             }
         }
-        
+
         for (i32 i = 0; i < processes_to_free_count; ++i){
             child_process_free(child_processes, processes_to_free[i]->id);
         }
     }
-    
+
     // NOTE(allen): simulated events
     Input_List input_list = input->events;
     Input_Modifier_Set modifiers = system_get_keyboard_modifiers(scratch);
@@ -469,10 +469,10 @@ App_Step_Sig(app_step){
         event.core.code = CoreCode_Animate;
         push_input_event(scratch, &input_list, &event);
     }
-    
+
     // NOTE(allen): expose layout
     Layout *layout = &models->layout;
-    
+
     // NOTE(allen): mouse hover status
     Panel *mouse_panel = 0;
     Panel *divider_panel = 0;
@@ -500,32 +500,32 @@ App_Step_Sig(app_step){
             }
         }
     }
-    
+
     // NOTE(allen): First frame initialization
     if (input->first_step){
         Temp_Memory_Block temp(scratch);
-        
+
         String_Const_u8_Array file_names = {};
         file_names.count = models->settings.init_files_count;
         file_names.vals = push_array(scratch, String_Const_u8, file_names.count);
         for (i32 i = 0; i < file_names.count; i += 1){
             file_names.vals[i] = SCu8(models->settings.init_files[i]);
         }
-        
+
         String_Const_u8_Array flags = {};
         flags.count = models->settings.custom_flags_count;
         flags.vals = push_array(scratch, String_Const_u8, flags.count);
         for (i32 i = 0; i < flags.count; i += 1){
             flags.vals[i] = SCu8(models->settings.custom_flags[i]);
         }
-        
+
         Input_Event event = {};
         event.kind = InputEventKind_Core;
         event.core.code = CoreCode_Startup;
         event.core.flag_strings = flags;
         event.core.file_names = file_names;
         co_send_event(tctx, models, &event);
-        
+
         // NOTE(allen): Actually do the buffer settings for the built ins now.
         Buffer_Hook_Function *begin_buffer_func = models->begin_buffer;
         if (begin_buffer_func != 0){
@@ -538,7 +538,7 @@ App_Step_Sig(app_step){
             begin_buffer_func(&app, models->keyboard_buffer->id);
         }
     }
-    
+
     // NOTE(allen): consume event stream
     Input_Event_Node *input_node = input_list.first;
     Input_Event_Node *input_node_next = 0;
@@ -557,7 +557,7 @@ App_Step_Sig(app_step){
                 continue;
             }
         }
-        
+
         Temp_Memory_Block temp(scratch);
         Input_Event *simulated_input = 0;
         Input_Event virtual_event = models_pop_virtual_event(scratch, models);
@@ -571,11 +571,11 @@ App_Step_Sig(app_step){
             }
             input_node_next = input_node->next;
             simulated_input = &input_node->event;
-            
+
             if (simulated_input->kind == InputEventKind_TextInsert && simulated_input->text.blocked){
                 continue;
             }
-            
+
             // NOTE(allen): record to keyboard history
             if (simulated_input->kind == InputEventKind_KeyStroke ||
                 simulated_input->kind == InputEventKind_KeyRelease ||
@@ -585,14 +585,14 @@ App_Step_Sig(app_step){
                 output_file_append(tctx, models, models->keyboard_buffer, key_line);
             }
         }
-        
+
         b32 event_was_handled = false;
         Input_Event *event = simulated_input;
-        
+
         Panel *active_panel = layout_get_active_panel(layout);
         View *view = active_panel->view;
         Assert(view != 0);
-        
+
         switch (models->state){
             case APP_STATE_EDIT:
             {
@@ -603,7 +603,7 @@ App_Step_Sig(app_step){
                     EventConsume_ClickChangeView,
                     EventConsume_CustomCommand,
                 };
-                
+
                 Event_Consume_Rule consume_rule = EventConsume_CustomCommand;
                 if (match_mouse_code(event, MouseCode_Left) && (divider_panel != 0)){
                     consume_rule = EventConsume_BeginResize;
@@ -612,7 +612,7 @@ App_Step_Sig(app_step){
                          mouse_panel != 0 && mouse_panel != active_panel){
                     consume_rule = EventConsume_ClickChangeView;
                 }
-                
+
                 switch (consume_rule){
                     case EventConsume_BeginResize:
                     {
@@ -620,30 +620,30 @@ App_Step_Sig(app_step){
                         models->resizing_intermediate_panel = divider_panel;
                         event_was_handled = true;
                     }break;
-                    
+
                     case EventConsume_ClickChangeView:
                     {
                         // NOTE(allen): run deactivate command
                         co_send_core_event(tctx, models, view, CoreCode_ClickDeactivateView);
-                        
+
                         layout->active_panel = mouse_panel;
                         models->animate_next_frame = true;
                         active_panel = mouse_panel;
                         view = active_panel->view;
-                        
+
                         // NOTE(allen): run activate command
                         co_send_core_event(tctx, models, view, CoreCode_ClickActivateView);
-                        
+
                         event_was_handled = true;
                     }break;
-                    
+
                     case EventConsume_CustomCommand:
                     {
                         event_was_handled = co_send_event(tctx, models, view, event);
                     }break;
                 }
             }break;
-            
+
             case APP_STATE_RESIZING:
             {
                 Event_Property event_flags = get_event_properties(event);
@@ -665,7 +665,7 @@ App_Step_Sig(app_step){
                 }
             }break;
         }
-        
+
         if (event_was_handled && event->kind == InputEventKind_KeyStroke){
             for (Input_Event *dependent_text = event->key.first_dependent_text;
                  dependent_text != 0;
@@ -675,12 +675,12 @@ App_Step_Sig(app_step){
             }
         }
     }
-    
+
     linalloc_clear(&models->virtual_event_arena);
     models->free_virtual_event = 0;
     models->first_virtual_event = 0;
     models->last_virtual_event = 0;
-    
+
     // NOTE(allen): send panel size update
     if (models->layout.panel_state_dirty){
         models->layout.panel_state_dirty = false;
@@ -691,7 +691,7 @@ App_Step_Sig(app_step){
             models->buffer_viewer_update(&app);
         }
     }
-    
+
     // NOTE(allen): dt
     f32 literal_dt = 0.f;
     u64 now_usecond_stamp = system_now_time();
@@ -704,7 +704,7 @@ App_Step_Sig(app_step){
     if (models->animated_last_frame){
         animation_dt = literal_dt;
     }
-    
+
     // NOTE(allen): on the first frame there should be no scrolling
     if (input->first_step){
         for (Panel *panel = layout_get_first_open_panel(layout);
@@ -717,7 +717,7 @@ App_Step_Sig(app_step){
             view_set_edit_pos(view, edit_pos);
         }
     }
-    
+
     // NOTE(allen): hook for files reloaded
     {
         Working_Set *working_set = &models->working_set;
@@ -734,31 +734,31 @@ App_Step_Sig(app_step){
             }
         }
     }
-    
+
     // NOTE(allen): if the exit signal has been sent, run the exit hook.
     if (!models->keep_playing || input->trying_to_kill){
         co_send_core_event(tctx, models, CoreCode_TryExit);
         models->keep_playing = true;
     }
-    
+
     // NOTE(allen): rendering
     {
         Frame_Info frame = {};
         frame.index = models->frame_counter;
         frame.literal_dt = literal_dt;
         frame.animation_dt = animation_dt;
-        
+
         Application_Links app = {};
         app.tctx = tctx;
         app.cmd_context = models;
-        
+
         if (models->tick != 0){
             models->tick(&app, frame);
         }
-        
+
         begin_render_section(target, models->frame_counter, literal_dt, animation_dt);
         models->in_render_mode = true;
-        
+
         Live_Views *live_views = &models->view_set;
         for (Node *node = layout->open_panels.next;
              node != &layout->open_panels;
@@ -773,15 +773,15 @@ App_Step_Sig(app_step){
                 }
             }
         }
-        
+
         if (models->whole_screen_render_caller != 0){
             models->whole_screen_render_caller(&app, frame);
         }
-        
+
         models->in_render_mode = false;
         end_render_section(target);
     }
-    
+
     // TODO(allen): This is dumb. Let's rethink view cleanup strategy.
     // NOTE(allen): wind down coroutines
     for (;;){
@@ -791,7 +791,7 @@ App_Step_Sig(app_step){
         }
         sll_stack_pop(models->wind_down_stack);
         Coroutine *co = node->co;
-        
+
         for (i32 j = 0; co != 0; j += 1){
             Co_In in = {};
             in.user_input.abort = true;
@@ -807,26 +807,26 @@ App_Step_Sig(app_step){
                 break;
             }
         }
-        
+
         sll_stack_push(models->free_wind_downs, node);
     }
-    
-    
+
+
     // NOTE(allen): flush the log
     log_flush(tctx, models);
-    
+
     // NOTE(allen): set the app_result
     Application_Step_Result app_result = {};
     app_result.mouse_cursor_type = APP_MOUSE_CURSOR_DEFAULT;
     app_result.lctrl_lalt_is_altgr = models->settings.lctrl_lalt_is_altgr;
-    
+
     // NOTE(allen): get new window title
     if (models->has_new_title){
         models->has_new_title = false;
         app_result.has_new_title = true;
         app_result.title_string = models->title_space;
     }
-    
+
     // NOTE(allen): get cursor type
     if (mouse_panel != 0 && !mouse_in_margin){
         app_result.mouse_cursor_type = APP_MOUSE_CURSOR_ARROW;
@@ -842,7 +842,7 @@ App_Step_Sig(app_step){
     else{
         app_result.mouse_cursor_type = APP_MOUSE_CURSOR_ARROW;
     }
-    
+
     models->prev_mouse_panel = mouse_panel;
     app_result.lctrl_lalt_is_altgr = models->settings.lctrl_lalt_is_altgr;
     app_result.perform_kill = models->hard_exit;
@@ -855,25 +855,25 @@ App_Step_Sig(app_step){
         // NOTE(allen): Set the timer's wakeup period, possibly to max_u32 thus effectively silencing it.
         system_wake_up_timer_set(models->period_wakeup_timer, models->next_animate_delay);
     }
-    
+
     // NOTE(allen): Update Frame to Frame States
     models->prev_p = input->mouse.p;
     models->animated_last_frame = app_result.animating;
     models->frame_counter += 1;
-    
+
     // end-of-app_step
     return(app_result);
 }
 
 extern "C" App_Get_Functions_Sig(app_get_functions){
     App_Functions result = {};
-    
+
     result.load_vtables = app_load_vtables;
     result.get_logger = app_get_logger;
     result.read_command_line = app_read_command_line;
     result.init = app_init;
     result.step = app_step;
-    
+
     return(result);
 }
 

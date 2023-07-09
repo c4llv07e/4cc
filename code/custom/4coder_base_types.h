@@ -31,7 +31,7 @@
 #  error architecture not supported yet
 # endif
 
-#elif defined(__clang__)
+#elif defined(__clang__) && !defined(__circle_lang__)
 
 # define COMPILER_CLANG 1
 
@@ -55,9 +55,31 @@
 #  error architecture not supported yet
 # endif
 
-#elif defined(__GNUC__) || defined(__GNUG__)
+#elif (defined(__GNUC__) || defined(__GNUG__)) && !defined(__circle_lang__)
 
 # define COMPILER_GCC 1
+
+# if defined(__gnu_linux__)
+#  define OS_LINUX 1
+# else
+#  error This compiler/platform combo is not supported yet
+# endif
+
+# if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
+#  define ARCH_X64 1
+# elif defined(i386) || defined(__i386) || defined(__i386__)
+#  define ARCH_X86 1
+# elif defined(__aarch64__)
+#  define ARCH_ARM64 1
+# elif defined(__arm__)
+#  define ARCH_ARM32 1
+# else
+#  error architecture not supported yet
+# endif
+
+#elif defined(__circle_lang__)
+
+# define COMPILER_CIRCLE 1
 
 # if defined(__gnu_linux__)
 #  define OS_LINUX 1
@@ -142,6 +164,8 @@
 # define COMPILER_NAME "clang++"
 #elif COMPILER_GCC
 # define COMPILER_NAME "g++"
+#elif COMPILER_CIRCLE
+# define COMPILER_NAME "circle"
 #else
 # error no name for this compiler
 #endif

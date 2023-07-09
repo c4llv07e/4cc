@@ -227,7 +227,7 @@ map_loose_match(Input_Modifier_Set *binding_mod_set, Input_Modifier_Set *event_m
 function Map_Event_Breakdown
 map_get_event_breakdown(Input_Event *event){
     Map_Event_Breakdown result = {};
-    
+
     switch (event->kind){
         case InputEventKind_KeyStroke:
         {
@@ -235,38 +235,38 @@ map_get_event_breakdown(Input_Event *event){
             result.mod_set = &event->key.modifiers;
             result.skip_self_mod = event->key.code;
         }break;
-        
+
         case InputEventKind_MouseButton:
         {
             result.key = mapping__key(InputEventKind_MouseButton, event->mouse.code);
             result.mod_set = &event->mouse.modifiers;
         }break;
-        
+
         case InputEventKind_MouseWheel:
         {
             result.key = mapping__key(InputEventKind_MouseWheel, 0);
             result.mod_set = &event->mouse_wheel.modifiers;
         }break;
-        
+
         case InputEventKind_MouseMove:
         {
             result.key = mapping__key(InputEventKind_MouseMove, 0);
             result.mod_set = &event->mouse_move.modifiers;
         }break;
-        
+
         case InputEventKind_Core:
         {
             result.key = mapping__key(InputEventKind_Core, event->core.code);
         }break;
     }
-    
+
     return(result);
 }
 
 function Command_Binding
 map_get_binding_non_recursive(Command_Map *map, Input_Event *event, Binding_Match_Rule rule){
     Command_Binding result = {};
-    
+
     if (event->kind == InputEventKind_CustomFunction){
         result.custom = event->custom_func;
     }
@@ -296,7 +296,7 @@ map_get_binding_non_recursive(Command_Map *map, Input_Event *event, Binding_Matc
                                 }
                             }
                         }break;
-                        
+
                         case BindingMatchRule_Loose:
                         {
                             for (SNode *node = list->first;
@@ -320,7 +320,7 @@ map_get_binding_non_recursive(Command_Map *map, Input_Event *event, Binding_Matc
             }
         }
     }
-    
+
     return(result);
 }
 
@@ -397,31 +397,31 @@ map_trigger_as_event(Command_Trigger *trigger){
     switch (result.kind){
         case InputEventKind_TextInsert:
         {}break;
-        
+
         case InputEventKind_KeyStroke:
         case InputEventKind_KeyRelease:
         {
             result.key.code = trigger->sub_code;
             result.key.modifiers = trigger->mods;
         }break;
-        
+
         case InputEventKind_MouseButton:
         case InputEventKind_MouseButtonRelease:
         {
             result.mouse.code = trigger->sub_code;
             result.mouse.modifiers = trigger->mods;
         }break;
-        
+
         case InputEventKind_MouseWheel:
         {
             result.mouse_wheel.modifiers = trigger->mods;
         }break;
-        
+
         case InputEventKind_MouseMove:
         {
             result.mouse_move.modifiers = trigger->mods;
         }break;
-        
+
         case InputEventKind_Core:
         {
             result.core.code = trigger->sub_code;
@@ -440,7 +440,7 @@ map_get_triggers_non_recursive(Mapping *mapping, Command_Map *map, Command_Bindi
             u64 val = 0;
             table_read(&map->cmd_to_binding_trigger, lookup, &val);
             result_ptr = (Command_Trigger_List*)IntAsPtr(val);
-            
+
             Command_Trigger_List list = {};
             for (Command_Trigger *node = result_ptr->first, *next = 0;
                  node != 0;
@@ -481,7 +481,7 @@ map_get_triggers_recursive(Arena *arena, Mapping *mapping, Command_Map *map, Com
              map != 0 && safety_counter < 40;
              safety_counter += 1){
             Command_Trigger_List list = map_get_triggers_non_recursive(mapping, map, binding);
-            
+
             for (Command_Trigger *node = list.first, *next = 0;
                  node != 0;
                  node = next){
@@ -489,7 +489,7 @@ map_get_triggers_recursive(Arena *arena, Mapping *mapping, Command_Map *map, Com
                 Command_Trigger *nnode = push_array_write(arena, Command_Trigger, 1, node);
                 sll_queue_push(result.first, result.last, nnode);
             }
-            
+
             map = mapping_get_map(mapping, map->parent);
         }
     }
@@ -545,7 +545,7 @@ map_set_binding(Mapping *mapping, Command_Map *map, Command_Binding binding, u32
         list->count += 1;
         mod_binding->mods = copy_modifier_set(&map->node_arena, mods);
         mod_binding->binding = binding;
-        
+
         Command_Trigger trigger = {};
         trigger.kind = code1;
         trigger.sub_code = code2;
@@ -686,49 +686,49 @@ command_trigger_stringize(Arena *arena, List_String_Const_u8 *list, Command_Trig
         {
             string_list_push(arena, list, string_u8_litexpr("TextInsert"));
         }break;
-        
+
         case InputEventKind_KeyStroke:
         {
             String_Const_u8 key_name = SCu8(ArraySafe(key_code_name, trigger->sub_code));
             string_list_push(arena, list, key_name);
             command_trigger_stringize_mods(arena, list, &trigger->mods);
         }break;
-        
+
         case InputEventKind_KeyRelease:
         {
             string_list_pushf(arena, list, "Release %s", ArraySafe(key_code_name, trigger->sub_code));
             command_trigger_stringize_mods(arena, list, &trigger->mods);
         }break;
-        
+
         case InputEventKind_MouseButton:
         {
             string_list_pushf(arena, list, "Mouse %s", ArraySafe(mouse_code_name, trigger->sub_code));
             command_trigger_stringize_mods(arena, list, &trigger->mods);
         }break;
-        
+
         case InputEventKind_MouseButtonRelease:
         {
             string_list_pushf(arena, list, "Release Mouse %s", ArraySafe(mouse_code_name, trigger->sub_code));
             command_trigger_stringize_mods(arena, list, &trigger->mods);
         }break;
-        
+
         case InputEventKind_MouseWheel:
         {
             string_list_push(arena, list, string_u8_litexpr("MouseWheel"));
             command_trigger_stringize_mods(arena, list, &trigger->mods);
         }break;
-        
+
         case InputEventKind_MouseMove:
         {
             string_list_push(arena, list, string_u8_litexpr("MouseMove"));
             command_trigger_stringize_mods(arena, list, &trigger->mods);
         }break;
-        
+
         case InputEventKind_Core:
         {
             string_list_pushf(arena, list, "Core %s", ArraySafe(core_code_name, trigger->sub_code));
         }break;
-        
+
         default:
         {
             string_list_push(arena, list, string_u8_litexpr("ERROR unexpected trigger kind"));
@@ -807,7 +807,7 @@ map_set_binding_l(m, map, BindFWrap_(F), InputEventKind_MouseMove, 0, __VA_ARGS_
 #define BindCore(F, K, ...) \
 map_set_binding_l(m, map, BindFWrap_(F), InputEventKind_Core, (K), __VA_ARGS__, 0)
 
-#elif COMPILER_GCC | COMPILER_CLANG
+#elif COMPILER_GCC | COMPILER_CLANG | COMPILER_CIRCLE
 
 #define Bind(F, K, ...) \
 map_set_binding_l(m, map, BindFWrap_(F), InputEventKind_KeyStroke, (K), ##__VA_ARGS__, 0)

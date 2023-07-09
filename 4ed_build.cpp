@@ -93,6 +93,8 @@ printf("\033[0m");\
 fflush(stdout);\
 }while(0);\
 
+#define ExitIfError(error) if(error) {exit(error);}
+
 #if OS_WINDOWS
 char* platform_layer_main_file = "platform_win32" SLASH "win32_4ed.cpp";
 #elif OS_LINUX
@@ -103,20 +105,20 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 
 
 #if COMPILER_CL
-
-#define compiler_flags "-W4 -wd4310 -wd4100 -wd4201 -wd4505 -wd4996 -wd4127 -wd4510 -wd4512 -wd4610 -wd4390 -wd4611 -wd4189 -WX -GR- -EHa- -nologo -FC -link -INCREMENTAL:NO -RELEASE -PDBALTPATH:%%_PDB%%"
-#define debug_flags " -Zi -DDO_CRAZY_EXPENSIVE_ASSERTS"
-#define optimization_flags " -O2"
-#define arch_flags " -MACHINE:X64 -DFTECH_64_BIT"
-#define libraries "user32.lib winmm.lib gdi32.lib opengl32.lib comdlg32.lib userenv.lib .\\non-source\\foreign\\x64\\freetype.lib .\\non-source\\foreign\\x86\\freetype.lib -NODEFAULTLIB:library"
-#define exports " -OPT:REF -EXPORT:"
-#define icon_flags ".\\non-source\\res\\icon.res"
-#define SHARED_FLAG " -LD"
-#define REMOVE_PROGRAM "del "
-#define PREPROCESS_FLAG " -E"
-#define OUT_FLAG " -o "
-#define INCLUDE_FLAG " -I"
-#define DEFINE_FLAG " -D"
+# define compiler_flags "-W4 -wd4310 -wd4100 -wd4201 -wd4505 -wd4996 -wd4127 -wd4510 -wd4512 -wd4610 -wd4390 -wd4611 -wd4189 -WX -GR- -EHa- -nologo -FC -link -INCREMENTAL:NO -RELEASE -PDBALTPATH:%%_PDB%%"
+# define debug_flags " -Zi -DDO_CRAZY_EXPENSIVE_ASSERTS"
+# define optimization_flags " -O2"
+# define arch_flags " -MACHINE:X64 -DFTECH_64_BIT"
+# define libraries "user32.lib winmm.lib gdi32.lib opengl32.lib comdlg32.lib userenv.lib .\\non-source\\foreign\\x64\\freetype.lib .\\non-source\\foreign\\x86\\freetype.lib -NODEFAULTLIB:library"
+# define exports " -OPT:REF -EXPORT:"
+# define icon_flags ".\\non-source\\res\\icon.res"
+# define SHARED_FLAG " -LD"
+# define REMOVE_PROGRAM "del "
+# define PREPROCESS_FLAG " -E"
+# define PREPROCESS_OUT_FLAG " -o "
+# define OUT_FLAG " -o "
+# define INCLUDE_FLAG " -I"
+# define DEFINE_FLAG " -D"
 
 //internal void
 //build(Arena *arena, u32 flags, u32 arch, char *code_path, char **code_files, char *out_path, char *out_file, char **defines, char **exports, char **inc_folders){
@@ -132,71 +134,71 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 //    fm_add_to_line(line, "cl");
 
 #elif COMPILER_GCC
-
-#if OS_LINUX
-
-#define compiler_flags "-Wno-write-strings -D_GNU_SOURCE -fPIC -fno-threadsafe-statics -pthread -Wno-unused-result -std=c++11"
-#define debug_flags "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols"
-#define optimization_flags " -O3"
-#define arch_flags " -m64 -DFTECH_64_BIT"
-#define libraries "-lX11 -lpthread -lm -lrt -lGL -ldl -lXfixes -lfreetype -lfontconfig"
-#define icon_flags " "
-#define SHARED_FLAG " -shared -fPIC"
-#define REMOVE_PROGRAM "rm "
-#define PREPROCESS_FLAG " -E"
-#define OUT_FLAG " -o "
-#define INCLUDE_FLAG " -I"
-#define DEFINE_FLAG " -D"
-
-#else
-# error gcc options not set for this platform
-#endif
-
-#elif COMPILER_CLANG
-
-#if OS_MAC
-# define libraries "-framework Cocoa -framework QuartzCore -framework CoreServices -framework OpenGL -framework IOKit -framework Metal -framework MetalKit ./non-source/foreign/x86/libfreetype-mac.a ./non-source/foreign/x64/libfreetype-mac.a"
-#elif OS_LINUX
-# define libraries "-lX11 -lpthread -lm -lrt -lGL -ldl -lXfixes -lfreetype -lfontconfig"
-#else
-# error clang options not set for this platform
-#endif
-
-#define compiler_flags "-Wno-write-strings -Wno-null-dereference -Wno-switch -Wno-missing-declarations -Wno-format-extra-args -D_GNU_SOURCE -fPIC -fno-threadsafe-statics -pthread -Wno-unused-result -std=c++11"
-#define debug_flags "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types "
-#define optimization_flags " -O3"
-#define arch_flags " -m64 -DFTECH_64_BIT"
-#define icon_flags " "
-#define SHARED_FLAG " -shared -fPIC"
-#define REMOVE_PROGRAM "rm "
-#define PREPROCESS_FLAG " -E"
-#define OUT_FLAG " -o "
-#define INCLUDE_FLAG " -I"
-#define DEFINE_FLAG " -D"
-
-
-#elif COMPILER_CIRCLE
+# define compiler_flags "-Wno-write-strings -D_GNU_SOURCE -fPIC -fno-threadsafe-statics -pthread -Wno-unused-result -std=c++11"
+# define debug_flags "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols"
+# define optimization_flags " -O3"
+# define arch_flags " -m64 -DFTECH_64_BIT"
+# define icon_flags " "
+# define SHARED_FLAG " -shared -fPIC"
+# define REMOVE_PROGRAM "rm "
+# define PREPROCESS_FLAG " -E"
+# define PREPROCESS_OUT_FLAG " -o "
+# define OUT_FLAG " -o "
+# define INCLUDE_FLAG " -I"
+# define DEFINE_FLAG " -D"
 
 # if OS_LINUX
-
-#  define compiler_flags "-Wno-writable-strings -Wno-deprecated-declarations -Wno-comment -Wno-switch -Wno-null-dereference  -Wno-tautological-compare  -std=c++11"
-#  define debug_flags "-g -O0  -fvar-tracking -fno-eliminate-unused-debug-symbols"
-#  define optimization_flags " -O3"
-#  define arch_flags " -m64 -DFTECH_64_BIT"
 #  define libraries "-lX11 -lpthread -lm -lrt -lGL -ldl -lXfixes -lfreetype -lfontconfig"
-#  define icon_flags " "
-#  define SHARED_FLAG " -shared -fPIC"
-#  define REMOVE_PROGRAM "rm "
-#  define PREPROCESS_FLAG " -E"
-#  define OUT_FLAG " -o "
-#  define INCLUDE_FLAG " -I"
-#  define DEFINE_FLAG " -D"
+# else
+#  error gcc options not set for this platform
+# endif
+
+#elif COMPILER_CLANG
+# define compiler_flags "-Wno-write-strings -Wno-null-dereference -Wno-switch -Wno-missing-declarations -Wno-format-extra-args -D_GNU_SOURCE -fPIC -fno-threadsafe-statics -pthread -Wno-unused-result -std=c++11"
+# define debug_flags "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types "
+# define optimization_flags " -O3"
+# define arch_flags " -m64 -DFTECH_64_BIT"
+# define icon_flags " "
+# define SHARED_FLAG " -shared -fPIC"
+# define REMOVE_PROGRAM "rm "
+# define PREPROCESS_FLAG " -E"
+# define PREPROCESS_OUT_FLAG " -o "
+# define OUT_FLAG " -o "
+# define INCLUDE_FLAG " -I"
+# define DEFINE_FLAG " -D"
+
+# if OS_MAC
+#  define libraries "-framework Cocoa -framework QuartzCore -framework CoreServices -framework OpenGL -framework IOKit -framework Metal -framework MetalKit ./non-source/foreign/x86/libfreetype-mac.a ./non-source/foreign/x64/libfreetype-mac.a"
+# elif OS_LINUX
+#  define libraries "-lX11 -lpthread -lm -lrt -lGL -ldl -lXfixes -lfreetype -lfontconfig"
+# else
+#  error clang options not set for this platform
+# endif
+
+#elif COMPILER_CIRCLE
+# define compiler_flags "-Wno-c++11-narrowing -Wno-writable-strings -Wno-deprecated-declarations -Wno-comment -Wno-switch -Wno-null-dereference  -Wno-tautological-compare  -std=gnu++11"
+# define debug_flags "-g "
+# define optimization_flags " -O3"
+# define arch_flags " -m64 -DFTECH_64_BIT"
+# define icon_flags " "
+# define SHARED_FLAG "-l=gcc_s -l=gccpp --shared -fPIC"
+# define REMOVE_PROGRAM "rm "
+# define PREPROCESS_FLAG " -E"
+# define PREPROCESS_OUT_FLAG " > "
+# define OUT_FLAG " -o "
+# define INCLUDE_FLAG " -I"
+# define DEFINE_FLAG " -D"
+
+# if OS_LINUX
+#  define libraries "-l=gcc_s -l=X11 -l=pthread -l=m -l=rt -l=GL -l=dl -l=Xfixes -l=freetype -l=fontconfig"
+# else
+#  error circle options not set for this platform
+# endif
 
 #else
-# error build function not defined for this compiler
+# error build defineds not specified for this compiler
 #endif
 
-#endif
 
 internal void
 buildsuper(Arena *arena, const Project* project)
@@ -221,8 +223,9 @@ buildsuper(Arena *arena, const Project* project)
 			debug,
 			source,
 			PREPROCESS_FLAG,
-			OUT_FLAG,
+			PREPROCESS_OUT_FLAG,
 			preproc_file);
+	ExitIfError(error_state);
 
 	BoldWhite("\n*-*-* Build the metadata generator *-*-*\n", "");
 	char* metadata_generator_cpp = fm_str(arena, layout->custom_layer_path, SLASH, "4coder_metadata_generator.cpp");
@@ -235,6 +238,7 @@ buildsuper(Arena *arena, const Project* project)
 			metadata_generator_cpp,
 			OUT_FLAG,
 			metadata_generator);
+	ExitIfError(error_state);
 
 	BoldWhite("\n*-*-* Generate meta data *-*-*\n", "");
 	char* home_folder = layout->custom_layer_path;
@@ -242,6 +246,7 @@ buildsuper(Arena *arena, const Project* project)
 			metadata_generator,
 			home_folder,
 			preproc_file);
+	ExitIfError(error_state);
 
 	BoldWhite("\n*-*-* Build the custom layer: %s *-*-*\n", source);
 	char* shared_library = compilation->custom_layer_out;
@@ -255,10 +260,13 @@ buildsuper(Arena *arena, const Project* project)
 			SHARED_FLAG,
 			OUT_FLAG,
 			shared_library);
+	ExitIfError(error_state);
 
 	BoldWhite("\n*-*-* Clear temporary files *-*-*\n", "");
 	systemf("%s %s", REMOVE_PROGRAM, metadata_generator);
+	ExitIfError(error_state);
 	systemf("%s %s", REMOVE_PROGRAM, preproc_file);
+	ExitIfError(error_state);
 }
 
 internal void
@@ -298,6 +306,7 @@ build(Arena *arena, u32 flags, const Project::Layout* layout, const Project::Com
     fm_finish_build_line(&line);
 
     systemf("%s %s", compilation->compiler, line.build_options);
+	ExitIfError(error_state);
 }
 
 internal void
@@ -306,7 +315,7 @@ build_main(Arena *arena, const Project* project, b32 update_local_theme)
 	u32 flags = project->compilation.flags;
 
 	// Build the 4ed_app - shared library
-	BoldWhite("\n*-*-* Build the 4ed library (%s -> %s) *-*-*\n", project->compilation.custom_layer, project->compilation.custom_layer_out);
+	BoldWhite("\n*-*-* Build the 4ed library (%s -> %s) *-*-*\n", project->compilation.app_target, project->compilation.app_target_out);
 	build(arena, SHARED_CODE | flags, &project->layout, &project->compilation);
 
 	// Build the 4ed binary
@@ -512,14 +521,14 @@ int main(int argc, char **argv){
 	compilation.custom_layer     = custom_target ? custom_target : fm_str(&arena, layout.custom_layer_path, SLASH, "4coder_default_bindings.cpp");
 	compilation.custom_layer_out = fm_str(&arena, layout.build_path, SLASH, "custom_4coder" DLL);
 
-	compilation.compiler_options     = compiler_flags;
-	compilation.debug_options        = debug_flags;
-	compilation.optimization_options = optimization_flags;
-	compilation.arch_options         = arch_flags;
+	compilation.compiler_options     = (char*)compiler_flags;
+	compilation.debug_options        = (char*)debug_flags;
+	compilation.optimization_options = (char*)optimization_flags;
+	compilation.arch_options         = (char*)arch_flags;
 
 	compilation.exports      = fm_str(&arena, "app_get_functions");
-	compilation.library      = libraries;
-	compilation.icon         = icon_flags;
+	compilation.library      = (char*)libraries;
+	compilation.icon         = (char*)icon_flags;
 	compilation.so_includes  = fm_str(&arena, INCLUDE_FLAG, layout.custom_layer_path, INCLUDE_FLAG, layout.foreign_path, SLASH, "freetype2");
 	compilation.bin_includes = fm_str(&arena, compilation.so_includes, INCLUDE_FLAG, "platform_unix");
 	compilation.defines      = fm_str(&arena,
@@ -528,8 +537,8 @@ int main(int argc, char **argv){
 									  DEFINE_FLAG, HasFlag(flags, SUPER) ? "FRED_SUPER": "unused_flag"
 									  );
 	compilation.flags    = flags,
-	compilation.os       = OS_NAME;
-	compilation.compiler = COMPILER_NAME;
+	compilation.os       = (char*)OS_NAME;
+	compilation.compiler = (char*)COMPILER_NAME;
 
 	if (!shouldPackage)
 	{
