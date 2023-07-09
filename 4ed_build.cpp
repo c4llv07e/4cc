@@ -135,7 +135,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 
 #elif COMPILER_GCC
 # define compiler_flags "-Wno-write-strings -D_GNU_SOURCE -fPIC -fno-threadsafe-statics -pthread -Wno-unused-result -std=c++11"
-# define debug_flags "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols"
+# define debug_flags "-g3 -ggdb3 -fno-eliminate-unused-debug-types -fvar-tracking -fno-eliminate-unused-debug-symbols"
 # define optimization_flags " -O3"
 # define arch_flags " -m64 -DFTECH_64_BIT"
 # define icon_flags " "
@@ -155,7 +155,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 
 #elif COMPILER_CLANG
 # define compiler_flags "-Wno-write-strings -Wno-null-dereference -Wno-switch -Wno-missing-declarations -Wno-format-extra-args -D_GNU_SOURCE -fPIC -fno-threadsafe-statics -pthread -Wno-unused-result -std=c++11"
-# define debug_flags "-g3 -ggdb3 -O0 -fno-eliminate-unused-debug-types "
+# define debug_flags "-g3 -ggdb3 -fno-eliminate-unused-debug-types "
 # define optimization_flags " -O3"
 # define arch_flags " -m64 -DFTECH_64_BIT"
 # define icon_flags " "
@@ -181,7 +181,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 # define optimization_flags " -O3"
 # define arch_flags " -m64 -DFTECH_64_BIT"
 # define icon_flags " "
-# define SHARED_FLAG "-l=gcc_s -l=gccpp --shared -fPIC"
+# define SHARED_FLAG " --shared -fPIC"
 # define REMOVE_PROGRAM "rm "
 # define PREPROCESS_FLAG " -E"
 # define PREPROCESS_OUT_FLAG " > "
@@ -190,7 +190,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 # define DEFINE_FLAG " -D"
 
 # if OS_LINUX
-#  define libraries "-l=gcc_s -l=X11 -l=pthread -l=m -l=rt -l=GL -l=dl -l=Xfixes -l=freetype -l=fontconfig"
+#  define libraries " -l=X11 -l=pthread -l=m -l=rt -l=GL -l=dl -l=Xfixes -l=freetype -l=fontconfig"
 # else
 #  error circle options not set for this platform
 # endif

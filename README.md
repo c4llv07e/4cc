@@ -3,8 +3,11 @@
 Welcome to the 4coder community repository.
 
 # Building
+To build 4coder you only need a C++ compiler (`cl`, `g++`, `clang++`, `circle (as of verison 198 it can not build the compiler intrisincs)`)
+By compiling the 4ed_build.cpp file in the root directory and running the resulting binary (most of the code base uses `char*` for strings in read-only data, to clean up the output we remove those warnings for each compiler.
 
-## Windows
+## Windows (Untested)
+` cl /Wno-write-strings`
 1. Setup the MSVC toolchain in your environment, this can be done with the `code/custom/bin/setup_cl_x64.bat` script
 2. call the `package.bat` script from the code directory
    1. `$ cd 4cc/code`
@@ -15,16 +18,29 @@ Welcome to the 4coder community repository.
 
 ## Linux
 > tested on Ubuntu 22.04:
-
 1. Get required libraries (apt names):
     - `$ sudo apt install build-essential libx11-dev libxfixes-dev libglx-dev mesa-common-dev libasound2-dev libfreetype-dev libfontconfig-dev`
-2. Use the `package-linux.sh` script to build and package an application
-   1. `$ cd 4cc/code`
-   2. `$ ./bin/package-linux.sh`
 
-3. You can also use the `build-linux.sh` script if you want just build the binaries, this does not copy the default config, fonts and bindings
-   1. `$ cd 4cc/code`
-   2. `$ ./bin/build-linux.sh`
+2. Compile and run `4ed_build.cpp`
+	1.Compile
+		`g++     4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings    -o 4ed_build`
+	or (sadly it doesn't build with the circle compiler yet)
+		`circle  4ed_build.cpp -Icode -Icode/custom --Wno-writable-strings -o 4ed_build && ./4ed_build`
+	or
+		`clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build && ./4ed_build`
+
+	2. Running the build system
+		The build system takes as input a few flags `dev` (debug), `opt` (optimized), `package', `custom=<target>`.
+		The easiest way of getting 4coder is to run
+		`4ed_build package`
+		this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.so` (custom layer) and puts the runtime resourses next to the binary (`bindings.4coder`, `config.4coder`, `font` directory, `themes` directory, and some custom layers).
 
 ## Mac (Untested)
-1. The steps should be the same as linux but replace the `*-linux.sh` with their `*-mac.sh` equivalents.
+	1.Compile
+		`clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build && ./4ed_build`
+
+	2. Running the build system
+		The build system takes as input a few flags `dev` (debug), `opt` (optimized), `package', `custom=<target>`.
+		The easiest way of getting 4coder is to run
+		`4ed_build package`
+		this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.so` (custom layer) and puts the runtime resourses next to the binary (`bindings.4coder`, `config.4coder`, `font` directory, `themes` directory, and some custom layers).
