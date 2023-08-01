@@ -7,8 +7,10 @@ To build 4coder you only need a C++ compiler (`cl`, `g++`, `clang++`, `circle (a
 By compiling the 4ed_build.cpp file in the root directory and running the resulting binary (most of the code base uses `char*` for strings in read-only data, to clean up the output we remove those warnings for each compiler.
 
 ## Windows
-1. Compile 
+1. Compile
+   
     cl /Icode\custom 4ed_build.cpp /Fe4ed_build && .\4ed_build.exe
+   
 
 ## Linux
 > tested on Ubuntu 22.04:
