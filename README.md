@@ -9,7 +9,7 @@ By compiling the 4ed_build.cpp file in the root directory and running the result
 ## Windows
 1. Compile
    
-    cl /Icode\custom 4ed_build.cpp /Fe4ed_build && .\4ed_build.exe
+    `cl /Icode\custom 4ed_build.cpp /Fe4ed_build && .\4ed_build.exe`
    
 
 ## Linux
@@ -18,6 +18,7 @@ By compiling the 4ed_build.cpp file in the root directory and running the result
     - `$ sudo apt install build-essential libx11-dev libxfixes-dev libglx-dev mesa-common-dev libasound2-dev libfreetype-dev libfontconfig-dev`
 
 2. Compile
+   
 		`g++     4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings    -o 4ed_build`
 
 	or (sadly it doesn't build with the circle compiler yet)
