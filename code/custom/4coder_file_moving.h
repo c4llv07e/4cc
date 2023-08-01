@@ -415,21 +415,21 @@ fm_zip(char *parent, char *folder, char *dest){
         printf("zipping %s\\%s to %s\n", parent, folder, dest);
     }
     fflush(stdout);
-
+    
     char cdir[512];
     fm_get_current_directory(cdir, sizeof(cdir));
-
+    
     char *hide_output = " > nul >> nul";
     char *show_output = "";
     char *output_rule = hide_output;
     if (fm__show_details_for_zip_output()){
         output_rule = show_output;
     }
-
+    
     Temp_Dir temp = fm_pushdir(parent);
-    systemf("%s\\bin\\zip %s\\4ed_gobble.zip%s", cdir, cdir, output_rule);
+    systemf("%s\code\\\bin\\zip %s\\4ed_gobble.zip%s", cdir, cdir, output_rule);
     fm_popdir(temp);
-
+    
     systemf("copy %s\\4ed_gobble.zip %s%s & del %s\\4ed_gobble.zip%s",
             cdir, dest, output_rule, cdir, output_rule);
 }
@@ -566,14 +566,14 @@ fm_zip(char *parent, char *folder, char *file){
         printf("zipping %s/%s to %s\n", parent, folder, file);
     }
     fflush(stdout);
-
+    
     char *hide_output = " > nul 2> nul";
     char *show_output = "";
     char *output_rule = hide_output;
     if (fm__show_details_for_zip_output()){
         output_rule = show_output;
     }
-
+    
     Temp_Dir temp = fm_pushdir(parent);
     systemf("zip -r %s %s%s", file, folder, output_rule);
     fm_popdir(temp);

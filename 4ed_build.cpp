@@ -267,9 +267,16 @@ buildsuper(Arena *arena, const Project* project)
 	ExitIfError(error_state);
     
 	BoldWhite("\n*-*-* Clear temporary files *-*-*\n", "");
+#if OS_WINDOWS
+    systemf("%s %s.exe", REMOVE_PROGRAM, metadata_generator);
+    systemf("%s %s.ilk", REMOVE_PROGRAM, metadata_generator);
+	systemf("%s %s.pdb", REMOVE_PROGRAM, metadata_generator);
+#else
 	systemf("%s %s", REMOVE_PROGRAM, metadata_generator);
-	ExitIfError(error_state);
-	systemf("%s %s", REMOVE_PROGRAM, preproc_file);
+#endif
+    ExitIfError(error_state);
+	
+    systemf("%s %s", REMOVE_PROGRAM, preproc_file);
 	ExitIfError(error_state);
 }
 
