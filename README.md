@@ -8,7 +8,7 @@ By compiling the 4ed_build.cpp file in the root directory and running the result
 
 ## Windows
 1. Compile 
-		` cl /Icode\custom 4ed_build.cpp /Fe4ed_build && .\4ed_build.exe `
+    cl /Icode\custom 4ed_build.cpp /Fe4ed_build && .\4ed_build.exe
 
 ## Linux
 > tested on Ubuntu 22.04:
