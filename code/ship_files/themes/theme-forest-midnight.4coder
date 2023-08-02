@@ -1,0 +1,126 @@
+//-
+// FOREST MIDNIGHT
+//-
+
+//- PALETTE 
+black       = 0xFF000000;
+black_rich  = 0xFF010d13;
+black_eerie = 0xFF141316;
+
+blue_cadet      = 0xFF719FA3;
+blue_cadet_trsp = 0x50719FA3;
+
+brown_dark      = 0xFF634323;
+brown_dark_trsp = 0x55634323;
+
+gray_onyx       = 0xFF3E3D45;
+gray_ash        = 0xFFAAB4B3;
+gray_light      = 0xFFd6d7d9;
+gray_battleship = 0xFF888888;
+
+green_moss             = 0xFF8CA749;
+green_moss_trsp        = 0x558CA749;
+green_dark_spring      = 0xFF316D4C;
+green_dark_spring_trsp = 0x20316D4C;
+green_artichoke        = 0xFF818C71;
+green_artichoke_trsp   = 0x55818C71;
+
+purple_dark      = 0xFF3C096C;
+purple_dark_trsp = 0x553C096C;
+
+white                = 0xFFffffff;
+white_lavender_blush = 0xFFf2e5ee;
+white_linen          = 0xFFf2e3de;
+
+red      = 0xFFff0000;
+red_trsp = 0x20ff0000;
+red_falu = 0xFF872D2D;
+
+orange_spanish = 0xFFEC6D13;
+
+cycle_brown_dark     = 0x10634323;
+cycle_white          = 0x10ffffff;
+cycle_green_moss     = 0x108CA749;
+cycle_gray_ash       = 0x10AAB4B3;
+cycle_red_falu       = 0x10872d2d;
+cycle_blue_cadet     = 0x10719FA3;
+cycle_orange_spanish = 0x10EC6D13;
+
+transparent = 0x00000000;
+//- END OF PALETTE 
+
+
+// 4CODER BASIC EDITOR COLORING
+defcolor_bar                   = black_rich;
+defcolor_base                  = white_linen;
+defcolor_pop1                  = green_moss;
+defcolor_pop2                  = red_falu;
+defcolor_back                  = black_eerie;
+defcolor_margin                = defcolor_back;
+defcolor_margin_hover          = black_eerie;
+defcolor_margin_active         = defcolor_back;
+
+// 4CODER LISTER(ALT-X) STUFF
+defcolor_list_item             = { defcolor_back, black_eerie};
+defcolor_list_item_hover       = { blue_cadet_trsp, defcolor_margin};
+defcolor_list_item_active      = { green_moss, defcolor_margin};
+
+// 4CODER BASIC SYNTAX HIGHLIGHTING
+defcolor_cursor                = {brown_dark, white_lavender_blush};
+defcolor_at_cursor             = defcolor_back;
+defcolor_highlight_cursor_line = defcolor_bar;
+defcolor_highlight             = white_lavender_blush;
+defcolor_at_highlight          = defcolor_back;
+defcolor_mark                  = green_moss;
+defcolor_text_default          = white_lavender_blush;
+defcolor_comment               = gray_onyx;
+defcolor_comment_pop           = {green_dark_spring, red_falu};
+defcolor_keyword               = blue_cadet;
+defcolor_str_constant          = green_dark_spring;
+defcolor_char_constant         = defcolor_str_constant;
+defcolor_int_constant          = defcolor_str_constant;
+defcolor_float_constant        = defcolor_str_constant;
+defcolor_bool_constant         = defcolor_str_constant;
+defcolor_preproc               = white;
+defcolor_include               = defcolor_str_constant;
+defcolor_special_character     = red_falu;
+defcolor_ghost_character       = blue_cadet;
+defcolor_highlight_junk        = red_trsp;
+defcolor_highlight_white       = purple_dark_trsp;
+
+// PASTE & UNDO
+defcolor_paste                 = 0xFF00FFFF;
+defcolor_undo                  = 0xFFFF00FF;
+
+// SCOPE HIGHLIGHTING, NESTED PAREN COLORING & LINE NUMBERS
+defcolor_back_cycle = {cycle_orange_spanish, cycle_white, cycle_green_moss , cycle_blue_cadet};
+defcolor_text_cycle            = {0xFFF01010, 0xFF20D020, 0xFF0080E0, 0xFFD0D000};
+defcolor_line_numbers_back     = 0xFF383838;
+defcolor_line_numbers_text     = 0xFF686860;
+
+
+// FLUERY ADVANCED SYNTAX HIGHLIGHTING
+fleury_color_syntax_crap               = gray_light;
+fleury_color_operators                 = blue_cadet;
+fleury_color_inactive_pane_overlay     = transparent;
+fleury_color_inactive_pane_background  = defcolor_back;
+fleury_color_file_progress_bar         = green_dark_spring_trsp;
+fleury_color_brace_highlight           = { blue_cadet };
+fleury_color_brace_line                = { black };
+fleury_color_brace_annotation          = { green_moss };
+fleury_color_index_product_type        = gray_ash;
+fleury_color_index_sum_type            = gray_ash;
+fleury_color_index_function            = defcolor_pop1;
+fleury_color_index_macro               = green_artichoke;
+fleury_color_index_constant            = green_moss;
+fleury_color_index_comment_tag         = red_falu;
+fleury_color_cursor_macro              = blue_cadet;
+fleury_color_cursor_power_mode         = green_dark_spring;
+fleury_color_cursor_inactive           = red_falu;
+fleury_color_plot_cycle                = { green_artichoke, blue_cadet, gray_battleship, red_falu };
+fleury_color_token_highlight           = green_artichoke;
+fleury_color_token_minor_highlight     = green_moss;
+fleury_color_error_annotation          = red;
+fleury_color_lego_grab                 = brown_dark_trsp;
+fleury_color_lego_splat                = brown_dark_trsp;
+fleury_color_comment_user_name         = white_linen;

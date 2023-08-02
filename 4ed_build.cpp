@@ -215,15 +215,17 @@ buildsuper(Arena *arena, const Project* project)
 	char* meta_macros = DEFINE_FLAG "META_PASS";
 	char* arch_flag = compilation->arch_options;
 	char* opts = compilation->compiler_options;
-	char* debug = compilation->debug_options;
-	char* preproc_file = fm_str(arena, layout->custom_layer_path, SLASH, "4coder_command_metadata.i ");
-	systemf("%s %s %s %s %s %s %s %s %s%s",
+	char* debug = HasFlag(compilation->flags, DEBUG_INFO) ? compilation->debug_options : "";
+    char* optimization = HasFlag(compilation->flags, OPTIMIZATION) ? compilation->optimization_options : ""; 
+    char* preproc_file = fm_str(arena, layout->custom_layer_path, SLASH, "4coder_command_metadata.i ");
+	systemf("%s %s %s %s %s %s %s %s %s %s%s",
 			compilation->compiler,
 			include_home_folder,
 			meta_macros,
 			arch_flag,
 			opts,
 			debug,
+            optimization,
 			source,
 			PREPROCESS_FLAG,
 			PREPROCESS_OUT_FLAG,
@@ -233,11 +235,12 @@ buildsuper(Arena *arena, const Project* project)
 	BoldWhite("\n*-*-* Build the metadata generator *-*-*\n", "");
 	char* metadata_generator_cpp = fm_str(arena, layout->custom_layer_path, SLASH, "4coder_metadata_generator.cpp");
 	char* metadata_generator     = fm_str(arena, layout->custom_layer_path, SLASH, "metadata_generator");
-	systemf("%s %s %s %s %s %s%s",
+	systemf("%s %s %s %s %s %s %s%s",
 			compilation->compiler,
 			include_home_folder,
 			opts,
 			debug,
+            optimization,
 			metadata_generator_cpp,
 			OUT_FLAG,
 			metadata_generator);
@@ -253,12 +256,13 @@ buildsuper(Arena *arena, const Project* project)
     
 	BoldWhite("\n*-*-* Build the custom layer: %s *-*-*\n", source);
 	char* shared_library = compilation->custom_layer_out;
-	systemf("%s %s %s %s %s %s %s %s%s %s",
+	systemf("%s %s %s %s %s %s %s %s %s%s %s",
 			compilation->compiler,
 			include_home_folder,
 			arch_flag,
 			opts,
 			debug,
+            optimization,
 			SHARED_FLAG,
 			source,
 			SHARED_OUT_FLAG,
@@ -395,23 +399,14 @@ build_main(Arena *arena, const Project* project, b32 update_local_theme)
     
     if (update_local_theme)
 	{
-        char* source_themes_folder = project->layout.ship_files_path;
-        char* themes_folder = project->layout.build_path;
+        char* ship_files_folder = project->layout.ship_files_path;
+        char* build_folder = project->layout.build_path;
         
-		BoldWhite("\n*-*-* Make if missing: %s  *-*-*\n", themes_folder);
-		fm_make_folder_if_missing(arena, themes_folder);
+		BoldWhite("\n*-*-* Make if missing: %s  *-*-*\n", build_folder);
+		fm_make_folder_if_missing(arena, build_folder);
         
-		BoldWhite("\n*-*-* Copying all from: %s  to: %s *-*-*\n", source_themes_folder, themes_folder);
-		fm_copy_all(source_themes_folder, themes_folder);
-        
-        char* source_fonts_folder = fm_str(arena, project->layout.dist_files_path, SLASH, "fonts");
-        char* fonts_folder = fm_str(arena, project->layout.build_path, SLASH, "fonts");
-        
-        BoldWhite("\n*-*-* Make if missing: %s  *-*-*\n", fonts_folder);
-		fm_make_folder_if_missing(arena, fonts_folder);
-        
-        BoldWhite("\n*-*-* Copying all from: %s  to: %s *-*-*\n", source_fonts_folder, fonts_folder);
-		fm_copy_all(source_fonts_folder, fonts_folder);
+		BoldWhite("\n*-*-* Copying all from: %s  to: %s *-*-*\n", ship_files_folder, build_folder);
+		fm_copy_all(ship_files_folder, build_folder);
     }
 }
 
@@ -487,7 +482,7 @@ build_docs(Arena* arena, Project* project)
     
     char* cpp_lexer_gen = "4coder_cpp_lexer_gen";
     char* cpp_lexer_gen_cpp = fm_str(arena, layout->languages_path, SLASH, cpp_lexer_gen, CPP);
-    char* cpp_lexer_gen_exe = fm_str(arena, layout->build_path, SLASH, cpp_lexer_gen, EXE);"custom\\languages\\4coder_cpp_lexer_gen.cpp";
+    char* cpp_lexer_gen_exe = fm_str(arena, layout->build_path, SLASH, cpp_lexer_gen, EXE);
     build_file(project, cpp_lexer_gen_cpp, cpp_lexer_gen_exe);
     run_file(cpp_lexer_gen_exe);
     
@@ -593,7 +588,7 @@ int main(int argc, char **argv){
     bool buildDocs          = is_in_argv("docs", argc, argv);
     
 	if (isDevelopmentBuild) { flags |= DEBUG_INFO | INTERNAL; }
-	if (isOptimizedBuild) { flags |= OPTIMIZATION; }
+	if (isOptimizedBuild) { flags |= OPTIMIZATION | SHIP; }
 	if (shouldPackage) { flags |= OPTIMIZATION | SHIP; }
     
 	Project project;
@@ -624,7 +619,7 @@ int main(int argc, char **argv){
 	compilation.platform_layer_out = fm_str(&arena, layout.build_path, SLASH, "4ed" EXE);
     
 	char* custom_target          = get_custom_target(argc, argv);
-	compilation.custom_layer     = custom_target ? custom_target : fm_str(&arena, layout.custom_layer_path, SLASH, "4coder_default_bindings.cpp");
+	compilation.custom_layer     = custom_target ? fm_str(&arena, layout.custom_layer_path, SLASH, custom_target, SLASH, custom_target, ".cpp") : fm_str(&arena, layout.custom_layer_path, SLASH, "4coder_default_bindings.cpp");
 	compilation.custom_layer_out = fm_str(&arena, layout.build_path, SLASH, "custom_4coder" DLL);
     
 	compilation.compiler_options     = (char*)compiler_flags;

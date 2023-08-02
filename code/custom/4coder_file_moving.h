@@ -427,7 +427,7 @@ fm_zip(char *parent, char *folder, char *dest){
     }
     
     Temp_Dir temp = fm_pushdir(parent);
-    systemf("%s\code\\\bin\\zip %s\\4ed_gobble.zip%s", cdir, cdir, output_rule);
+    systemf("%s\\code\\bin\\zip %s\\4ed_gobble.zip%s", cdir, cdir, output_rule);
     fm_popdir(temp);
     
     systemf("copy %s\\4ed_gobble.zip %s%s & del %s\\4ed_gobble.zip%s",

@@ -1,0 +1,46 @@
+
+defcolor_back =					0xFF000000;
+defcolor_margin =			  	0xFF262626;
+defcolor_margin_hover =			0xFF333333;
+defcolor_margin_active =		   0xFF404040;
+defcolor_list_item =			   defcolor_margin;
+defcolor_list_item_hover =		 defcolor_margin_hover;
+defcolor_list_item_active =		defcolor_margin_active;
+defcolor_cursor =			  	0xFFA0A9C1;
+defcolor_at_cursor =			   0xff594f48;
+defcolor_highlight_cursor_line =   0x30b98b78;
+defcolor_highlight =			   0xFF703419;
+defcolor_mark =					0xDDFF7F00;
+defcolor_text_default =			0xFFCCC1AA;
+defcolor_at_highlight =		    0xFFCDAA7D;
+defcolor_comment =				 0xFF55617b;
+defcolor_comment_pop =			{0xFF00A000, 0xFFA00000};
+defcolor_keyword =				 0xDDFFAb00;
+defcolor_str_constant =			0xFFAD5353;
+defcolor_char_constant =		   defcolor_str_constant;
+defcolor_int_constant =			defcolor_str_constant;
+defcolor_float_constant =		  defcolor_str_constant;
+defcolor_bool_constant =		   defcolor_str_constant;
+defcolor_include =				 defcolor_str_constant;
+defcolor_preproc =				 defcolor_keyword;
+defcolor_special_character =	   0xFF2828CC;
+defcolor_ghost_character =		 0xFFBFBFBF;
+
+defcolor_paste = defcolor_keyword;
+
+defcolor_undo = defcolor_cursor;
+
+defcolor_highlight_junk = 0xff3a0000;
+defcolor_highlight_white = 0xff003a3a;
+
+defcolor_bar = 0xFF222222;
+defcolor_bar_active = FFA8A8A8;
+defcolor_base = defcolor_text_default;
+defcolor_pop1 = defcolor_comment;
+defcolor_pop2 = defcolor_int_constant;
+
+defcolor_back_cycle = {0x80111111, 0x30FFAb00, 0x7044617b, 0x35AD5353};
+defcolor_text_cycle = {0xFFA00000, 0xFF00A000, 0xFF0030B0, 0xFFA0A000};
+
+defcolor_line_numbers_back = 0xFF101010;
+defcolor_line_numbers_text = 0xFF404040;

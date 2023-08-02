@@ -1,0 +1,121 @@
+//-
+// MIAMIVICE
+//-
+
+//- PALETTE 
+black       = 0xFF000000;
+black_eerie = 0xFF141316;
+
+blue_russian_violet   = 0xFF1a131f;
+blue_aqua             = 0xFF31cdce;
+
+
+gray_onyx       = 0xFF3E3D45;
+gray_ash        = 0xFFAAB4B3;
+gray_light      = 0xFFd6d7d9;
+gray_light_trsp = 0x20d6d7d9;
+gray_battleship = 0xFF888888;
+
+pink_fuchsia          = 0xFFb92dbb;
+pink_cottoncandy      = 0xFFfac9f7;
+pink_cottoncandy_trsp = 0x55fac9f7;
+
+purple_dark      = 0xFF3C096C;
+purple_dark_trsp = 0x553C096C;
+
+white                = 0xFFffffff;
+white_linen          = 0xFFf2e3de;
+
+red                  = 0xFFff0000;
+red_trsp             = 0x20ff0000;
+red_dark_sienna      = 0xFF421723;
+red_dark_sienna_trsp = 0x55421723;
+
+orange_light_salmon      = 0xFFf3a87c;
+
+cycle_white           = 0x10ffffff;
+cycle_blue_aqua       = 0x1021fdfe;
+cycle_gray_ash        = 0x10aaB4b3;
+cycle_red_dark_sienna = 0x10421723;
+cycle_pink_fuchsia    = 0x10fa2dfb;
+cycle_blue_cadet      = 0x10719fa3;
+cycle_orange_spanish  = 0x20f3a87c;
+
+transparent = 0x00000000;
+//- END OF PALETTE 
+
+
+// 4CODER BASIC EDITOR COLORING
+defcolor_bar                   = black_eerie;
+defcolor_base                  = white_linen;
+defcolor_pop1                  = white_linen;
+defcolor_pop2                  = pink_fuchsia;
+defcolor_back                  = blue_russian_violet;
+defcolor_margin                = defcolor_back;
+defcolor_margin_hover          = black_eerie;
+defcolor_margin_active         = defcolor_back;
+
+// 4CODER LISTER(ALT-X) STUFF
+defcolor_list_item             = { defcolor_back, black_eerie};
+defcolor_list_item_hover       = { pink_fuchsia, defcolor_margin};
+defcolor_list_item_active      = { blue_aqua, defcolor_margin};
+
+// 4CODER BASIC SYNTAX HIGHLIGHTING
+defcolor_cursor                = {blue_aqua, white_lavender_blush};
+defcolor_at_cursor             = defcolor_back;
+defcolor_highlight_cursor_line = pink_cottoncandy_trsp;
+defcolor_highlight             = white_linen;
+defcolor_at_highlight          = defcolor_back;
+defcolor_mark                  = white_linen;
+defcolor_text_default          = white_linen;
+defcolor_comment               = gray_battleship;
+defcolor_comment_pop           = {blue_aqua, pink_fuchsia};
+defcolor_keyword               = pink_fuchsia;
+defcolor_str_constant          = pink_cottoncandy;
+defcolor_char_constant         = defcolor_str_constant;
+defcolor_int_constant          = defcolor_str_constant;
+defcolor_float_constant        = defcolor_str_constant;
+defcolor_bool_constant         = defcolor_str_constant;
+defcolor_preproc               = orange_light_salmon;
+defcolor_include               = defcolor_str_constant;
+defcolor_special_character     = pink_cottoncandy;
+defcolor_ghost_character       = blue_vivid_sky;
+defcolor_highlight_junk        = red_trsp;
+defcolor_highlight_white       = purple_dark_trsp;
+
+// PASTE & UNDO
+defcolor_paste                 = 0xFF00FFFF;
+defcolor_undo                  = 0xFFFF00FF;
+
+// SCOPE HIGHLIGHTING, NESTED PAREN COLORING & LINE NUMBERS
+defcolor_back_cycle = {cycle_orange_spanish, cycle_white, cycle_blue_aqua , cycle_pink_fuchsia};
+defcolor_text_cycle            = {0xFFF01010, 0xFF20D020, 0xFF0080E0, 0xFFD0D000};
+defcolor_line_numbers_back     = 0xFF383838;
+defcolor_line_numbers_text     = 0xFF686860;
+
+
+// FLUERY ADVANCED SYNTAX HIGHLIGHTING
+fleury_color_syntax_crap               = pink_fuchsia;
+fleury_color_operators                 = fleury_color_syntax_crap;
+fleury_color_inactive_pane_overlay     = transparent;
+fleury_color_inactive_pane_background  = defcolor_back;
+fleury_color_file_progress_bar         = pink_cottoncandy_trsp;
+fleury_color_brace_highlight           = { blue_aqua };
+fleury_color_brace_line                = { gray_light_trsp };
+fleury_color_brace_annotation          = { pink_fuchsia };
+fleury_color_index_product_type        = gray_battleship;
+fleury_color_index_sum_type            = gray_ash;
+fleury_color_index_function            = blue_aqua;
+fleury_color_index_macro               = white;
+fleury_color_index_constant            = oxFFd8352f;
+fleury_color_index_comment_tag         = red;
+fleury_color_cursor_macro              = white;
+fleury_color_cursor_power_mode         = red;
+fleury_color_cursor_inactive           = pink_fuchsia;
+fleury_color_plot_cycle                = { green_artichoke, blue_cadet, gray_battleship, red_rufous };
+fleury_color_token_highlight           = blue_cadet;
+fleury_color_token_minor_highlight     = blue_aqua;
+fleury_color_error_annotation          = red;
+fleury_color_lego_grab                 = blue_aqua;
+fleury_color_lego_splat                = red;
+fleury_color_comment_user_name         = white_linen;

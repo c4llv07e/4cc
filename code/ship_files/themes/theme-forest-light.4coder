@@ -1,0 +1,113 @@
+//-
+// FOREST LIGHT
+//-
+
+//- PALETTE 
+blue_outer_space_crayola = 0xFF163439;
+blue_prussian            = 0xFF0c2234;
+
+brown_beaver    = 0xFFad8f7d;
+
+green_moss      = 0xFF8aa050;
+green_moss_trsp = 0x558aa050;
+green_hunter    = 0xFF426644;
+green_brunswick = 0xFF324d3f;
+
+gray_charcoal       = 0xFF324c61;
+gray_charcoal_trsp  = 0x55324c61;
+gray_slate          = 0xFF6b7c86;
+gray_gunmetal       = 0xFF212b33;
+gray_silver_chalice = 0xFFA5ADB3;
+
+white           = 0xFFffffff;
+white_gainsboro = 0xFFE0DCDC;
+
+red      = 0xFFff0000;
+red_trsp = 0x20ff0000;
+red_falu = 0xFF872d2d;
+
+cycle_blue_prussian   = 0x180c2234;
+cycle_gray_charcoal   = 0x18324c61;
+cycle_green_moss      = 0x188aa050;
+cycle_green_hunter    = 0x18426644;
+cycle_green_brunswick = 0x18324d3f;
+cycle_white           = 0x18ffffff;
+cycle_red_falu        = 0x18872d2d;
+
+transparent = 0x00000000;
+//- END OF PALETTE 
+
+// 4CODER BASIC EDITOR COLORING
+defcolor_bar                   = gray_silver_chalice;
+defcolor_base                  = white_gainsboro;
+defcolor_pop1                  = green_moss;
+defcolor_pop2                  = red_falu;
+defcolor_back                  = white_gainsboro;
+defcolor_margin                = green_moss;
+defcolor_margin_hover          = white_gainsboro;
+defcolor_margin_active         = defcolor_back;
+
+// 4CODER LISTER(ALT-X) STUFF
+defcolor_list_item             = { white_gainsboro, green_moss};
+defcolor_list_item_hover       = { brown_beaver, defcolor_margin};
+defcolor_list_item_active      = { green_moss, defcolor_margin};
+
+// 4CODER BASIC SYNTAX HIGHLIGHTING
+defcolor_cursor                = {gray_gunmetal, blue_prussian};
+defcolor_at_cursor             = defcolor_back;
+defcolor_highlight_cursor_line = defcolor_bar;
+defcolor_highlight             = blue_prussian;
+defcolor_at_highlight          = white;
+defcolor_mark                  = green_moss;
+defcolor_text_default          = gray_gunmetal;
+defcolor_comment               = gray_slate;
+defcolor_comment_pop           = {green_moss, red_falu};
+defcolor_keyword               = red_falu;
+defcolor_str_constant          = green_hunter;
+defcolor_char_constant         = defcolor_str_constant;
+defcolor_int_constant          = defcolor_str_constant;
+defcolor_float_constant        = defcolor_str_constant;
+defcolor_bool_constant         = defcolor_str_constant;
+defcolor_preproc               = brown_beaver;
+defcolor_include               = defcolor_str_constant;
+defcolor_special_character     = red_falu;
+defcolor_ghost_character       = green_hunter;
+defcolor_highlight_junk        = red_trsp; // NOTE(MIGUEL): Test: MSVC Error in Compilation Buffer
+defcolor_highlight_white       = green_moss_trsp; // NOTE(MIGUEL): Test: List Locations(CTRL+SHIFT F)
+
+// PASTE & UNDO
+defcolor_paste                 = 0xFF00FFFF;
+defcolor_undo                  = 0xFFFF00FF;
+
+// SCOPE HIGHLIGHTING, NESTED PAREN COLORING & LINE NUMBERS
+defcolor_back_cycle            = {cycle_green_hunter, cycle_white, cycle_green_brunswick, cycle_red_falu};
+defcolor_text_cycle            = {0xFFF01010, 0xFF20D020, 0xFF0080E0, 0xFFD0D000};
+defcolor_line_numbers_back     = gray_charcoal_trsp;
+defcolor_line_numbers_text     = gray_charcoal;
+
+
+// FLUERY ADVANCED SYNTAX HIGHLIGHTING
+fleury_color_syntax_crap               = gray_charcoal;
+fleury_color_operators                 = gray_charcoal;
+fleury_color_inactive_pane_overlay     = transparent;
+fleury_color_inactive_pane_background  = defcolor_back;
+fleury_color_file_progress_bar         = gray_charcoal_trsp;
+fleury_color_brace_highlight           = { red_falu };
+fleury_color_brace_line                = { gray_charcoal_trsp };
+fleury_color_brace_annotation          = { blue_prussian };
+fleury_color_index_product_type        = gray_slate;
+fleury_color_index_sum_type            = gray_slate;
+fleury_color_index_function            = defcolor_pop1;
+fleury_color_index_macro               = green_brunswick;
+fleury_color_index_constant            = green_brunswick;
+fleury_color_index_comment_tag         = red_falu;
+fleury_color_cursor_macro              = white;
+fleury_color_cursor_power_mode         = green_hunter;
+fleury_color_cursor_inactive           = red_falu;
+fleury_color_plot_cycle                = { green_moss, blue_outer_space_crayola, gray_slate, red_falu };
+fleury_color_token_highlight           = green_moss;
+fleury_color_error_annotation          = red;
+fleury_color_token_minor_highlight     = green_moss;
+fleury_color_lego_grab                 = brown_beaver;
+fleury_color_lego_splat                = brown_beaver;
+fleury_color_comment_user_name         = blue_outer_space_crayola;
