@@ -109,7 +109,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 
 
 #if COMPILER_CL
-# define compiler_flags "-W4 -wd4310 -wd4100 -wd4201 -wd4505 -wd4996 -wd4127 -wd4510 -wd4512 -wd4610 -wd4390 -wd4611 -wd4189 -wd4457 -wd4389 -WX -GR- -EHa- -nologo -FC "
+# define compiler_flags "-W4 -wd4310 -wd4100 -wd4201 -wd4505 -wd4996 -wd4127 -wd4510 -wd4512 -wd4610 -wd4390 -wd4611 -wd4189 -wd4457 -WX -GR- -EHa- -nologo -FC "
 // -link -INCREMENTAL:NO -RELEASE -PDBALTPATH:%%_PDB%%"
 # define debug_flags " -Zi -DDO_CRAZY_EXPENSIVE_ASSERTS"
 # define optimization_flags " -O2"
