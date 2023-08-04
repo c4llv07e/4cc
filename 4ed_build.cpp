@@ -139,7 +139,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 # define REMOVE_PROGRAM "rm "
 # define PREPROCESS_FLAG " -E"
 # define PREPROCESS_OUT_FLAG " -o "
-# define SHARED_OUT_FLAG " -o "
+# define SHARED_OUT_FLAG SHARED_FLAG " -o "
 # define OUT_FLAG " -o "
 # define INCLUDE_FLAG " -I"
 # define DEFINE_FLAG " -D"
