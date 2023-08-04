@@ -109,7 +109,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 
 
 #if COMPILER_CL
-# define compiler_flags "-W4 -wd4310 -wd4100 -wd4201 -wd4505 -wd4996 -wd4127 -wd4510 -wd4512 -wd4610 -wd4390 -wd4611 -wd4189 -wd4457 -WX -GR- -EHa- -nologo -FC "
+# define compiler_flags "-W4 -wd4310 -wd4100 -wd4201 -wd4505 -wd4996 -wd4127 -wd4510 -wd4512 -wd4610 -wd4390 -wd4611 -wd4189 -wd4457 -wd4389 -WX -GR- -EHa- -nologo -FC "
 // -link -INCREMENTAL:NO -RELEASE -PDBALTPATH:%%_PDB%%"
 # define debug_flags " -Zi -DDO_CRAZY_EXPENSIVE_ASSERTS"
 # define optimization_flags " -O2"
@@ -256,13 +256,17 @@ buildsuper(Arena *arena, const Project* project)
     
 	BoldWhite("\n*-*-* Build the custom layer: %s *-*-*\n", source);
 	char* shared_library = compilation->custom_layer_out;
-	systemf("%s %s %s %s %s %s %s %s %s%s %s",
+	systemf("%s %s %s %s %s %s %s %s %s %s%s %s",
 			compilation->compiler,
 			include_home_folder,
 			arch_flag,
 			opts,
 			debug,
             optimization,
+            fm_str(arena, 
+                   DEFINE_FLAG, "OS_WINDOWS=", OS_WINDOWS?"1":"0",
+                   DEFINE_FLAG, "OS_LINUX=", OS_LINUX?"1":"0",
+                   DEFINE_FLAG, "OS_MAC=", OS_MAC?"1":"0"),
 			SHARED_FLAG,
 			source,
 			SHARED_OUT_FLAG,

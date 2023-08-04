@@ -1,3 +1,12 @@
 [submodule "code/custom/4coder_byp"]
 	path = code/custom/4coder_byp
 	url = https://github.com/B-Y-P/4coder_byp.git
+[submodule "code/custom/4coder_fleury"]
+	path = code/custom/4coder_fleury
+	url = https://github.com/Jack-Punter/4coder_punter.git
+[submodule "code/custom/4coder_punter"]
+	path = code/custom/4coder_punter
+	url = https://github.com/Jack-Punter/4coder_punter.git
+[submodule "code/custom/--name4coder_fleury"]
+	path = code/custom/--name4coder_fleury
+	url = https://github.com/Jack-Punter/4coder_punter.git
