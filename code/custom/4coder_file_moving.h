@@ -168,6 +168,12 @@ static char platform_correct_slash = '/';
 # error No BAT format specified for this OS
 #endif
 
+#if OS_WINDOWS || OS_LINUX || OS_MAC
+# define CPP ".cpp"
+#else
+# error No CPP format specified for this OS
+#endif
+
 #endif
 
 //
