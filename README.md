@@ -2,14 +2,14 @@
 
 Welcome to the 4coder community repository.
 
-# Building
+## Building
 To build 4coder you only need a C++ compiler (`cl`, `g++`, `clang++`, `circle (as of verison 198 it can not build the compiler intrisincs)`)
 By compiling the 4ed_build.cpp file in the root directory and running the resulting binary (most of the code base uses `char*` for strings in read-only data, to clean up the output we remove those warnings for each compiler).
 
 ## Compile
 ### Windows
 
-	cl /Icode\custom 4ed_build.cpp /Fe4ed_build && .\4ed_build.exe
+	cl /Icode\custom 4ed_build.cpp /Fe4ed_build
    
 ### Linux
 1. Get required libraries (apt names)
@@ -20,23 +20,23 @@ By compiling the 4ed_build.cpp file in the root directory and running the result
  
 2. Compile
 
-        g++     4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings    -o 4ed_build
+        g++     4ed_build.cpp -Icode/custom  -Wno-write-strings    -o 4ed_build
 
-or (sadly it doesn't build with the circle compiler yet)
+	or (sadly it doesn't build with the circle compiler yet)
 
-	circle  4ed_build.cpp -Icode -Icode/custom --Wno-writable-strings -o 4ed_build
+		circle  4ed_build.cpp -Icode/custom --Wno-writable-strings -o 4ed_build
 
-or
+	or
 
-	clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build
+		clang++ 4ed_build.cpp -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build
 
 ### Mac (Untested)
 
-	clang++ 4ed_build.cpp -Icode -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build
+	clang++ 4ed_build.cpp -Icode/custom  -Wno-write-strings -Wno-null-dereference -o 4ed_build
 
 
 ## Running the build system
-The build system takes as input a few flags `dev` (debug), `opt` (optimized), `package`, `custom=<target>`.
+The build system takes as input a few flags `dev` (debug), `opt` (optimized), `custom=<target>`.
 The easiest way of getting 4coder is to run
 
 	4ed_build opt
@@ -51,3 +51,7 @@ this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.
  or
  
  	4ed_build opt custom=4coder_fleury
+
+## Getting started on working on a custom layer
+There is an articlewriten by MrMixer on the 4coder - HandMade Network:
+https://4coder.handmade.network/forums/articles/t/7319-customization_layer_-_getting_started__4coder_4.1_
