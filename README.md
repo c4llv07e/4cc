@@ -44,7 +44,7 @@ The easiest way of getting 4coder is to run
 this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.so` (custom layer) and puts the runtime resourses next to the binary (`bindings.4coder`, `config.4coder`, `font` directory, `themes` directory, and some custom layers).
 
 ### Custom targets
-4coder is split between two layer (core and custom). If at build time the `custom=<target>` is specified the build system will build the `<target>/<target>.cpp`. By cloning this repo recursively, some example custom layers will also be cloned and can be built by passing the name of the folder as argument to the build system.
+4coder is split between two layer (core and custom). If at build time the `custom=<target>` is specified the build system will build the `<target>/<target>.cpp`. By cloning this repo recursively, some example custom layers will also be cloned and can be built by passing the name of the folder as argument to the build system. Build `4coder_byp` for a vim like experience or build `4coder_fleury` for a emacs like experience. 4coder is emacs like by default, but the 4coder_fleury custom layer has more features then what you get out of the box.
 	
 	4ed_build opt custom=4coder_byp
 
