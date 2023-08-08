@@ -80,7 +80,7 @@ struct Project
 	Compilation compilation;
 };
 
-#define ExitIfError(error) if(error) printf("ERROR: error-id(%d)\n", error); {exit(error);}
+#define ExitIfError(error) if(error){ printf("ERROR: error-id(%d)\n", error); exit(error);}
 
 #if OS_WINDOWS
 char* platform_layer_main_file = "platform_win32" SLASH "win32_4ed.cpp";
@@ -145,7 +145,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 # define REMOVE_PROGRAM "rm "
 # define PREPROCESS_FLAG " -E"
 # define PREPROCESS_OUT_FLAG " -o "
-# define SHARED_OUT_FLAG " -o "
+# define SHARED_OUT_FLAG SHARED_FLAG " -o "
 # define OUT_FLAG " -o "
 # define INCLUDE_FLAG " -I"
 # define DEFINE_FLAG " -D"
@@ -170,7 +170,7 @@ char* platform_layer_main_file = "platform_mac"   SLASH "mac_4ed.mm";
 # define REMOVE_PROGRAM "rm "
 # define PREPROCESS_FLAG " -E"
 # define PREPROCESS_OUT_FLAG " > "
-# define SHARED_OUT_FLAG " -o "
+# define SHARED_OUT_FLAG SHARED_FLAG " -o "
 # define OUT_FLAG " -o "
 # define INCLUDE_FLAG " -I"
 # define DEFINE_FLAG " -D"
