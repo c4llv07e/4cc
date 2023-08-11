@@ -3,7 +3,7 @@
 Welcome to the 4coder community repository.
 
 ## Building
-To build 4coder you only need a C++ compiler (`cl`, `g++`, `clang++`, `circle (as of verison 198 it can not build the compiler intrisincs)`)
+To build 4coder you only need a C++ compiler (`cl`, `g++`, `clang++`, `circle (as of verison 200 it can not build the compiler intrisincs)`)
 By compiling the 4ed_build.cpp file in the root directory and running the resulting binary (most of the code base uses `char*` for strings in read-only data, to clean up the output we remove those warnings for each compiler).
 
 ## Compile
