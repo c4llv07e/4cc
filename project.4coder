@@ -39,9 +39,9 @@ commands = {
 		.cursor_at_end = true,
 	},
 	.run_build_system = {
-		.win = ".\\4ed_build.exe",
-		.linux = "./4ed_build",
-		.mac = "./4ed_build",
+		.win = ".\\4ed_build.exe dev",
+		.linux = "./4ed_build dev",
+		.mac = "./4ed_build dev",
 		.out = "*compilation*",
 		.footer_panel = true,
 		.save_dirty_files = false,
