@@ -196,15 +196,17 @@ build_super(Arena *arena, const Project* project)
 	char* source = compilation->custom_layer;
 	char* meta_macros = DEFINE_FLAG "META_PASS";
 	char* arch_flag = compilation->arch_options;
+	char* defines = compilation->defines;
 	char* opts = compilation->compiler_options;
 	char* debug = HasFlag(compilation->flags, DEBUG_INFO) ? compilation->debug_options : (char*)"";
     char* optimization = HasFlag(compilation->flags, OPTIMIZATION) ? compilation->optimization_options : (char*)"";
     char* preproc_file = fm_str(arena, layout->custom_layer_path, SLASH, "4coder_command_metadata.i ");
-	systemf("%s %s %s %s %s %s %s %s %s %s%s",
+	systemf("%s %s %s %s %s %s %s %s %s %s %s%s",
 			compilation->compiler,
 			include_home_folder,
 			meta_macros,
 			arch_flag,
+			defines,
 			opts,
 			debug,
             optimization,
@@ -217,9 +219,10 @@ build_super(Arena *arena, const Project* project)
 	printf("\n*-*-* Build the metadata generator *-*-*\n");
 	char* metadata_generator_cpp = fm_str(arena, layout->custom_layer_path, SLASH, "4coder_metadata_generator.cpp");
 	char* metadata_generator     = fm_str(arena, layout->custom_layer_path, SLASH, "metadata_generator");
-	systemf("%s %s %s %s %s %s %s%s",
+	systemf("%s %s %s %s %s %s %s %s%s",
 			compilation->compiler,
 			include_home_folder,
+			defines,
 			opts,
 			debug,
             optimization,
@@ -245,10 +248,7 @@ build_super(Arena *arena, const Project* project)
 			opts,
 			debug,
             optimization,
-            fm_str(arena,
-                   DEFINE_FLAG, "OS_WINDOWS=", OS_WINDOWS?"1":"0",
-                   DEFINE_FLAG, "OS_LINUX=", OS_LINUX?"1":"0",
-                   DEFINE_FLAG, "OS_MAC=", OS_MAC?"1":"0"),
+            defines,
 			SHARED_FLAG,
 			source,
 			SHARED_OUT_FLAG,
@@ -553,7 +553,10 @@ int main(int argc, char **argv){
 	compilation.defines              = fm_str(&arena,
                                               DEFINE_FLAG, HasFlag(flags, SHIP) ? "SHIP_MODE": "unused_flag",
                                               DEFINE_FLAG, HasFlag(flags, INTERNAL) ? "FRED_INTERNAL": "unused_flag",
-                                              DEFINE_FLAG, HasFlag(flags, SUPER) ? "FRED_SUPER": "unused_flag"
+                                              DEFINE_FLAG, HasFlag(flags, SUPER) ? "FRED_SUPER": "unused_flag",
+											  DEFINE_FLAG, "OS_WINDOWS=", OS_WINDOWS?"1":"0",
+											  DEFINE_FLAG, "OS_LINUX=", OS_LINUX?"1":"0",
+											  DEFINE_FLAG, "OS_MAC=", OS_MAC?"1":"0"
                                               );
 	compilation.flags    = flags,
 	compilation.os       = (char*)OS_NAME;
