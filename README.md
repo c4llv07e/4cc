@@ -52,6 +52,8 @@ this compiles `4ed` (platform layer), `4ed_app.so` (core layer), `custom_4coder.
  
  	4ed_build opt custom=4coder_fleury
 
+When compiling a specified custom layer, the build system will skip compiling the shared library and the binary, if they have already been built. This is done to save a bit of time when iterating on your own custom layer.
+
 ## Getting started on working on a custom layer
 There is an articlewriten by MrMixer on the 4coder - HandMade Network:
 https://4coder.handmade.network/forums/articles/t/7319-customization_layer_-_getting_started__4coder_4.1_
