@@ -58,6 +58,8 @@ internal void fm_delete_file(char *file);
 internal void fm_copy_file(char *file, char *newname);
 internal void fm_copy_all(char *source, char *folder);
 internal void fm_copy_folder(Arena *arena, char *src_dir, char *dst_dir, char *src_folder);
+internal bool fm_exists_folder(char* directory_path);
+internal bool fm_exists_file(char* file_path);
 
 // File Reading and Writing
 internal void fm_write_file(char *file_name, char *data, u32 size);
@@ -440,6 +442,26 @@ fm_zip(char *parent, char *folder, char *dest){
             cdir, dest, output_rule, cdir, output_rule);
 }
 
+internal bool
+fm_exists_file_windows(char* path)
+{
+	return PathFileExistsA(path);
+}
+
+
+internal bool
+fm_exists_file(char* file_path)
+{
+	return fm_exists_file_windows(file_path);
+}
+
+internal bool 
+fm_exists_folder(char* directory_path)
+{
+	return fm_exists_file_windows(directory_path);
+}
+
+
 //
 // Unix implementation
 //
@@ -448,6 +470,7 @@ fm_zip(char *parent, char *folder, char *dest){
 
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 internal Temp_Dir
 fm_pushdir(char *dir){
@@ -567,6 +590,7 @@ fm_write_file(char *file_name, char *data, u32 size){
 }
 
 internal void
+
 fm_zip(char *parent, char *folder, char *file){
     if (fm__show_details_for_file_operations()){
         printf("zipping %s/%s to %s\n", parent, folder, file);
@@ -583,6 +607,33 @@ fm_zip(char *parent, char *folder, char *file){
     Temp_Dir temp = fm_pushdir(parent);
     systemf("zip -r %s %s%s", file, folder, output_rule);
     fm_popdir(temp);
+}
+internal bool
+fm_exists_file_unix(char* file_path)
+{
+	bool does_folder_exists = false;
+	struct stat folder_stats;
+	int error_occured = stat(file_path, &folder_stats);
+	
+	if (!error_occured)
+	{
+		does_folder_exists = true;
+	}
+	
+	return does_folder_exists;
+}
+
+// Unix system treat everything as a file <3<3<3!!!
+internal bool
+fm_exists_file(char* file_path)
+{
+	return fm_exists_file_unix(file_path);
+}
+
+internal bool 
+fm_exists_folder(char* directory_path)
+{
+	return fm_exists_file_unix(directory_path);
 }
 
 #else
